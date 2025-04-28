@@ -30,6 +30,7 @@ class SearchService
         return RealEstate::where(function($query) use ($topSearches) {
                 foreach ($topSearches as $search) {
                     switch ($search->value_type) {
+                        
                         case 'range':
                             if (preg_match('/^(\d+)-(\d+)$/', $search->value, $matches)) {
                                 $query->orWhereBetween('price', [(float)$matches[1], (float)$matches[2]]);
