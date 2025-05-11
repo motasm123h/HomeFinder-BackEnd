@@ -9,19 +9,13 @@ use App\Http\Controllers\ServicesController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-
-
-
-
-
-
 Route::get('/user', function () {
     return "hi";
 });
 
-// Route::get('/sanctum/csrf-cookie', function (Request $request) {
-//     return response()->json(['message' => 'CSRF cookie set']);
-// });
+Route::get('/sanctum/csrf-cookie', function (Request $request) {
+    return response()->json(['message' => 'CSRF cookie set']);
+});
 
 
 
@@ -33,10 +27,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::prefix('RealEstate/')->group(function(){
         Route::post('create',[RealEstateController::class,'create']);
+        Route::get('getStatus',[RealEstateController::class,'getStatus']);
         Route::post('index',[RealEstateController::class,'index']);
         Route::post('update/{id}',[RealEstateController::class,'update']);
         Route::post('delete/{id}',[RealEstateController::class,'delete']);
-
+        Route::get('getLocation',[RealEstateController::class,'getLocation']);
         Route::get('getDetails/{id}',[RealEstateController::class,'getDetails']);
         
     });
@@ -46,6 +41,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('indexSent',[OfficeController::class,'getPaginatedSent']);
         Route::post('send-request',[OfficeController::class,'create']);
         Route::post('delete-request/{id}',[OfficeController::class,'delete']);
+        // Route::post('details/{id}',[OfficeController::class,'details']);
         // Route::get('getDetails/{id}',[RealEstateController::class,'getDetails']);
     });
 
@@ -60,6 +56,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('most-search',[SearchController::class,'mostSearched']);
         Route::get('most-watch',[SearchController::class,'mostWatch']);
         Route::post('preferences',[SearchController::class,'preferences']);
+        Route::get('/voiceSearch', [SearchController::class, 'search']);
         // Route::post('delete',[SearchController::class,'delete']);
     });
 

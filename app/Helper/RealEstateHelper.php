@@ -1,0 +1,28 @@
+<?php
+
+namespace App\Helper;
+
+use App\Models\RealEstate;
+
+class RealEstateHelper {
+    public static function formatRealEstate(RealEstate $item): array {
+        return [
+            'id' => $item->id,
+            'price' => $item->price,
+            'images' => $item->images->map(function ($image) {
+                return ['name' => $image->name];
+            }),
+            'location' => $item->location ? [
+                'city' => $item->location->city,
+                'district' => $item->location->district,
+            ] : null,
+            'properties' => $item->properties ? [
+                'room_no' => $item->properties->room_no,
+                'space_status' => $item->properties->space_status,
+                'kind' => $item->properties->kind,
+                'floor' => $item->properties->floor,
+                'description' => $item->properties->description,
+            ] : null,
+        ];
+    }
+}

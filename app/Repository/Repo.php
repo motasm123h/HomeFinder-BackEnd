@@ -48,9 +48,9 @@ class Repo implements IBase {
         return $model->update($data) ? $model->fresh() : null;
     }
     
-    public function delete(string $pro,int $id): bool{
+    public function delete(int $id): bool{
         $model = $this->model->where('id', $id)
-                         ->where($pro, auth()->user()->id) // Check ownership
+                        //  ->where($pro, auth()->user()->id) 
                          ->first();
         if(!$model){
             return false;

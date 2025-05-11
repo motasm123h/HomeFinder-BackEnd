@@ -27,43 +27,21 @@ class RealEstate extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    /**
-     * Get all of the images for the RealEstate
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
     public function images(): HasMany
     {
         return $this->hasMany(RealEstate_images::class);
     }
 
-    /**
-     * Get the Location that owns the RealEstate
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
     public function location(): BelongsTo
     {
         return $this->belongsTo(RealEstate_Location::class, 'real_estate_location_id');
     }
 
-
-    /**
-     * Get the Location associated with the RealEstate
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
     public function properties(): HasOne
     {
         return $this->hasOne(RealEstate_properties::class);
     }
 
-    
-    /**
-     * Get all of the images for the RealEstate
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
     public function view(): HasMany
     {
         return $this->hasMany(RealEstate_View::class, 'real_estate_id');

@@ -10,7 +10,7 @@ class RealEstate_Request extends Model
 {
     protected $table = 'real_estate_requests';
     protected $fillable = [
-        'title','phone_number','user_id','sender_id','username'
+        'title','phone_number','user_id','username'
     ];
 
 

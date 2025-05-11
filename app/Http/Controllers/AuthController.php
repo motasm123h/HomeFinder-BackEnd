@@ -3,15 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Models\Address;
 use App\Models\Contact;
 use App\Models\User;
+use App\Traits\ResponseTrait;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use App\Traits\ResponseTrait;
-
+use Illuminate\Support\Facades\Log;
+use App\Helper\ProfileHelper;
 
 class AuthController extends Controller
 {
@@ -95,26 +98,48 @@ class AuthController extends Controller
         }
     }
 
-    public function profile(int $id)
+   public function profile(int $id)
     {
         try {
-            $user = User::with(['address', 'realEstate', 'service', 'contact'])
-                       ->findOrFail($id);
-    
-            return $this->apiResponse(
-                'Profile retrieved successfully',
-                $user,
-                200
-            );
+            $user = User::with([
+                'address', 
+                'contact',
+                'realEstate' => function($query) {
+                    $query->limit(10);
+                },
+                'service' => function($query) {
+                    $query->limit(10);
+                }
+            ])->findOrFail($id);
+
+            $formattedData = ProfileHelper::formatUserProfile($user);
+
+            return response()->json([
+                'message' => 'Profile retrieved successfully',
+                'data' => $formattedData,
+                'meta' => [
+                    'realEstate' => [
+                        'total' => $user->realEstate()->count(),
+                        'remaining' => max(0, $user->realEstate()->count() - 10)
+                    ],
+                    'service' => [
+                        'total' => $user->service()->count(),
+                        'remaining' => max(0, $user->service()->count() - 10)
+                    ]
+                ]
+            ]);
+
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return $this->apiResponse('User not found', null, 404);
+            return response()->json([
+                'message' => 'User not found',
+                'data' => null
+            ], 404);
         } catch (\Exception $e) {
-            \Log::error("Profile retrieval failed: " . $e->getMessage());
-            return $this->apiResponse(
-                'Failed to retrieve profile',
-                ['error' => $e->getMessage()],
-                500
-            );
+            \Log::error("Profile retrieval error: " . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to retrieve profile',
+                'error' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
         }
     }
 

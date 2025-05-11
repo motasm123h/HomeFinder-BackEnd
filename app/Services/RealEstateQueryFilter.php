@@ -16,23 +16,20 @@ class RealEstateQueryFilter
         return $query
             ->when($filters['type'] ?? null, fn($q, $type) => $q->where('type', $type))
             ->when($filters['kind'] ?? null, fn($q, $kind) => $q->where('kind', $kind))
-            // ->when($filters['status'] ?? null, fn($q, $status) => $q->where('status', $status))
-            ->when($filters['min_price'] ?? null, fn($q, $min) => $q->where('price', '>=', $min))
+            // ->when($filters['min_price'] ?? null, fn($q, $min) => $q->where('price', '>=', $min))
             ->when($filters['max_price'] ?? null, fn($q, $max) => $q->where('price', '<=', $max))
-            ->when($filters['location'] ?? null, fn($q) => $this->filterByLocation($q, $filters['location']))
-            ->when($filters['sort_by'] ?? null, fn($q) => $this->sortResults($q, $filters['sort_by']));
+            ->when($filters['location'] ?? null, fn($q) => $this->filterByLocation($q, $filters['location']));
     }
 
 
     protected function logSearchFilters(array $filters): void
     {
-        $userId = Auth::id();
+        // $userId = Auth::id();
         
         foreach ($this->getLoggableFilters($filters) as $key => $value) {
             Search_Log::create([
                 'key' => $key,
                 'value' => $value,
-                'user_id' => $userId
             ]); 
         }
     }

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 use App\Services\AdminService;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
+use App\Helper\OfficeHelper;
+
 
 class AdminController extends Controller
 {
@@ -14,9 +16,10 @@ class AdminController extends Controller
     public function index(Request $request)
     {
         try{
-            $perPage = $request->input('per_page', 15); 
+            $perPage = $request->input('per_page', 12); 
             $users = $this->service->getAllAdminUsers($perPage);
-            return $this->apiResponse('Success', $users->load('realEstate','address','service'), 200);
+            $offices = $users->load('address','contact')->map(fn($user) => OfficeHelper::formatOffice($user));
+            return $this->apiResponse('Success', $offices, 200);
         }
         catch(\Exception $e){
             \Log::error("Failed to load user realationships : " . $e->getMessage());

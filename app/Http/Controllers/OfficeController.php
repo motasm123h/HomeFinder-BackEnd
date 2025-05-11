@@ -23,11 +23,18 @@ class OfficeController extends Controller
             'data' => $this->service->getPaginatedSent(),
         ]);
     }
+    public function details(int $id){
+        $data = User::where('id',$id)->frist();
+
+        return respnse()->json([
+            'data' => $data->load('contact','address','service','realEstate','verification'),
+        ]);
+    }
 
     public function create(StoreRealEstateRequestRequest $request): JsonResponse
     {
         $validated = $request->validated();
-        $validated['sender_id'] = auth()->id();
+        // $validated['sender_id'] = auth()->id();
 
         return response()->json([
             'data' => $this->service->createRequest($validated),

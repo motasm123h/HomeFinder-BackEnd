@@ -61,7 +61,7 @@ class RealEstateRepository extends Repo{
         return $realEstate;
     }
 
-    public function delete(string $pro,int $id):bool{
-        return parent::delete($pro,$id);
+    public function delete(int $id):bool{
+        return parent::delete($id);
     }
 }

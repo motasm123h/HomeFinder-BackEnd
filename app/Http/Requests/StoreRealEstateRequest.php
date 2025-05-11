@@ -23,14 +23,13 @@ class StoreRealEstateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // Real Estate Fields
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
             // 'status' => ['required', Rule::in(['Closed', 'Open'])],
-            'type' => ['required', Rule::in(['Rental', 'Sale'])],
+            'type' => ['required', Rule::in(['rental', 'sale'])],
             'price' => 'required|integer|min:0',
             'description' => 'required|string|max:1000',
-            'kind' => ['required', Rule::in(['Apartment', 'Villa', 'Chalet'])],
+            'kind' => ['required', Rule::in(['apartment', 'villa', 'chalet'])],
             'user_id' => 'required|exists:users,id',
             'real_estate_location_id' => 'required|exists:real_estate_locations,id',
             

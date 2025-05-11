@@ -31,8 +31,7 @@ class ModelService{
                     config('model_paths.real_estate.image_path')
                 );
             }
-            
-            return $realEstate->load('properties', 'images');
+            return $realEstate->load('properties', 'images','user');
         });
     }
 
@@ -59,7 +58,7 @@ class ModelService{
         });
     }
 
-    public function deleteRealEstate(string $pro="user_id",int $id){
+    public function deleteRealEstate(int $id){
         return $this->repository->delete($id);;
     }
     
