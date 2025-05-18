@@ -90,9 +90,19 @@ class ProfileHelper
 
     protected static function formatServices(User $user): array
     {
-        return $user->relationLoaded('service') 
-            ? $user->service->toArray() 
-            : [];
+       
+
+         return $user->service->map(function ($property) {
+            return [
+                'id' => $property->id,
+                'title' => ucfirst($property->title),
+                'description' => ucfirst($property->description),
+                
+                'services_type_id' => $property->services_type_id,
+                'user_id' => $property->user_id,
+                
+            ];
+        })->toArray();
     }
 
     protected static function formatPhone(string|int $phone): string

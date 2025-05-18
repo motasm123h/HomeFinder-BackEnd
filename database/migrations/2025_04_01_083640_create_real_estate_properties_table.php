@@ -27,8 +27,8 @@ return new class extends Migration
             $table->integer('floor');
             $table->enum('garden_status',['1','2']);
             $table->enum('attired',['1','2','3']);
-            $table->enum('ownership_type',['Green', 'Court']);
-            $table->enum('price',['1','2','3']);
+            $table->enum('ownership_type',['green', 'court']);
+            // $table->enum('price',['1','2','3']);
             $table->foreignIdFor(RealEstate::class)->constrained()->onDelete('cascade');       
             $table->integer('total_weight')->default(0);
             $table->timestamps();

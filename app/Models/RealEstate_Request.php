@@ -10,7 +10,7 @@ class RealEstate_Request extends Model
 {
     protected $table = 'real_estate_requests';
     protected $fillable = [
-        'title','phone_number','user_id','username'
+        'title','phone_number','user_id','username','description'
     ];
 
 
@@ -26,6 +26,6 @@ class RealEstate_Request extends Model
 
     public function sender(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'sender_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

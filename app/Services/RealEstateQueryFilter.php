@@ -13,14 +13,21 @@ class RealEstateQueryFilter
     public function apply(Builder $query, array $filters): Builder
     {
         $this->logSearchFilters($filters);
+        
         return $query
-            ->when($filters['type'] ?? null, fn($q, $type) => $q->where('type', $type))
-            ->when($filters['kind'] ?? null, fn($q, $kind) => $q->where('kind', $kind))
-            // ->when($filters['min_price'] ?? null, fn($q, $min) => $q->where('price', '>=', $min))
-            ->when($filters['max_price'] ?? null, fn($q, $max) => $q->where('price', '<=', $max))
-            ->when($filters['location'] ?? null, fn($q) => $this->filterByLocation($q, $filters['location']));
+            ->when($filters['type'] ?? null, function($q, $type) {
+                return $q->where('type', $type);
+            })
+            ->when($filters['kind'] ?? null, function($q, $kind) {
+                return $q->where('kind', $kind);
+            })
+            ->when($filters['max_price'] ?? null, function($q, $max) {
+                return $q->where('price', '<=', $max);
+            })
+            ->when($filters['location'] ?? null , function($q) use ($filters) {
+                return $this->filterByLocation($q, $filters['location']);
+            });
     }
-
 
     protected function logSearchFilters(array $filters): void
     {

@@ -17,7 +17,7 @@ class AdminService
         return $this->repository->update(['status' => $status], $id);
     }
 
-    public function deleteUser(string $pro="user_id",int $id)
+    public function deleteUser(int $id)
     {
         return $this->repository->delete($id);
     }

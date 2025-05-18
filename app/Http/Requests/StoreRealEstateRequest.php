@@ -33,8 +33,7 @@ class StoreRealEstateRequest extends FormRequest
             'user_id' => 'required|exists:users,id',
             'real_estate_location_id' => 'required|exists:real_estate_locations,id',
             
-            // Images
-            'images' => 'sometimes|array',
+            'images' => 'required|array',
             'images.*' => [
                 'image',
                 'mimes:jpeg,png,jpg,gif',
@@ -55,7 +54,7 @@ class StoreRealEstateRequest extends FormRequest
             'floor' => 'required|integer',
             'garden_status' => ['required', Rule::in(['1', '2'])],
             'attired' => ['required', Rule::in(['1', '2', '3'])],
-            'ownership_type' => ['required', Rule::in(['Green', 'Court'])],
+            'ownership_type' => ['required', Rule::in(['green', 'court'])],
             // 'total_weight' => 'required|integer',
         ];
     }

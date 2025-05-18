@@ -24,20 +24,25 @@ class RealEstateController extends Controller
         try {
             $query = RealEstate::query()
                 ->with(['location', 'images', 'properties', 'user']);
+            
                 
             if ($request->anyFilled(['type', 'kind', 'max_price', 'location'])) {
                 (new RealEstateQueryFilter)->apply($query, $request->all());
+                
+                $realEstates = $query->paginate($request->input('per_page', 12));
+                return $realEstates;
+                
             }
             
             if (!$query->exists()) {
                 $query = RealEstate::query()
-                    ->with(['location', 'images', 'properties', 'user'])
-                    ->inRandomOrder()
-                    ->limit(12);
+                ->with(['location', 'images', 'properties', 'user'])
+                ->inRandomOrder()
+                ->limit(12);
             }
             
             $realEstates = $query->paginate($request->input('per_page', 12))
-                ->through(fn ($item) => RealEstateHelper::formatRealEstate($item));
+            ->through(fn ($item) => RealEstateHelper::formatRealEstate($item));
                 
             return $this->apiResponse(
                 'Real estates retrieved successfully',

@@ -5,7 +5,8 @@ use App\Services\AdminService;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
 use App\Helper\OfficeHelper;
-
+use App\Models\RealEstate_Location;
+use Illuminate\Support\Facades\Validator; 
 
 class AdminController extends Controller
 {
@@ -54,7 +55,6 @@ class AdminController extends Controller
         }
     }
 
-    //no test
     public function delete(int $id)
     {
         try {
@@ -73,4 +73,63 @@ class AdminController extends Controller
             return $this->apiResponse('Failed to delete user', null, 500);
         }
     }
+
+
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'city' => 'required|string|max:255',
+            'district' => 'required|string|max:255'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $location = RealEstate_Location::create([
+            'city' => $request->city,
+            'district' => $request->district
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $location
+        ], 201);
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $location = RealEstate_Location::findOrFail($id);
+
+            if ($location->realEstate()->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot delete location with associated real estates'
+                ], 422);
+            }
+
+            $location->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Location deleted successfully'
+            ]);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Location not found'
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete location'
+            ], 500);
+        }
+    }
+    
 }

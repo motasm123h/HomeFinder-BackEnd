@@ -8,15 +8,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Services extends Model
 {
-    protected $fillable = ['title','description', 'service_type_id','user_id'];
-
+    protected $table = 'services'; 
+    protected $fillable = ['title','description', 'services_type_id','user_id'];
 
     public function usersInfo(){
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class,'user_id');
     }
     
     public function servicesType(){
-        return $this->belongsTo(Services_Type::class);
+        return $this->belongsTo(Services_Type::class,'services_type_id');
     }
 
 }

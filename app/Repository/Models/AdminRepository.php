@@ -22,7 +22,7 @@ class AdminRepository extends Repo
         return $user;
     }
 
-    public function delete(string $pro,int $id): bool
+    public function delete(int $id): bool
     {
         return parent::delete($id);
     }

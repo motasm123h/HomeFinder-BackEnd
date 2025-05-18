@@ -11,9 +11,7 @@ class OfficeHelper {
         return [
             'id' => $user->id, // Arabic name (if stored)
             'name' => $user->name, // Arabic name (if stored)
-            'nameEn' => $user->name, // English name (adjust if needed)
             'address' => $address ? "{$address->city} - {$address->district}" : 'N/A',
-            'addressEn' => $address ? "{$address->city} - {$address->district}" : 'N/A',
             'phone' => $contact ? "+963 " . substr($contact->phone_no, 0, 3) . " " . substr($contact->phone_no, 3, 3) . " " . substr($contact->phone_no, 6) : 'N/A',
             'whatsapp' => $contact ? '963' . $contact->phone_no : 'N/A',
             'telegram' => $contact ? $contact->username : 'N/A',

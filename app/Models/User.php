@@ -2,12 +2,10 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Models\Address;
 use App\Models\Contact;
 use App\Models\RealEstate;
 use App\Models\RealEstate_Request;
-use App\Models\Reviews;
 use App\Models\Search_Log;
 use App\Models\Services;
 use App\Models\Verification;
@@ -67,14 +65,14 @@ class User extends Authenticatable
         return $this->hasOne(Address::class);
     }
     public function verification(){
-        return $this->hasOne(Verification::class);
+        return $this->hasOne(Verification::class,'user_id');
     }
 
     public function realEstate(){
         return $this->hasMany(RealEstate::class);
     }
     public function service(){
-        return $this->hasMany(Services::class);
+        return $this->hasMany(Services::class,'user_id');
     }
     
     public function searchLog(){
@@ -88,15 +86,15 @@ class User extends Authenticatable
     
     public function sentRealEstateRequests(): HasMany
     {
-        return $this->hasMany(RealEstate_Request::class, 'sender_id');
+        return $this->hasMany(RealEstate_Request::class, 'user_id');
     }
 
     public function getTokenAttribute()
     {
         return $this->createToken('secret')->plainTextToken;
     }
-    public function reviews()
-    {
-        return $this->hasMany(Reviews::class);
-    }
+    // public function reviews()
+    // {
+    //     return $this->hasMany(Reviews::class);
+    // }
 }

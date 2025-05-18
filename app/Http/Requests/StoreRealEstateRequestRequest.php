@@ -18,6 +18,7 @@ class StoreRealEstateRequestRequest extends FormRequest
             'phone_number' => ['required', 'string', 'max:20'],
             'username' => ['required', 'string', 'max:20'],
             'user_id' => ['required', 'exists:users,id'],
+            'description' => ['required'],
         ];
     }
 }

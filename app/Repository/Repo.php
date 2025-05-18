@@ -16,13 +16,25 @@ class Repo implements IBase {
     }
 
 
-    public function index() 
+    public function index(array $with = [],int $perPage = 10)
     {
-        return $this->model->all();
+        $query = $this->model->newQuery();
+        if (!empty($with)) {
+            $query->with($with);
+        }
+        return $query->paginate($perPage);
     }
 
-    public function findOrFail(int $id): Model{
-        return $this->model->findOrFail($id);
+
+    public function findOrFail(int $id, array $with = [])
+    {
+        $query = $this->model->newQuery();
+        
+        if (!empty($with)) {
+            $query->with($with);
+        }
+        
+        return $query->findOrFail($id);
     }
 
     public function create(array $request): Model {  

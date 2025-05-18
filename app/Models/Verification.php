@@ -13,6 +13,6 @@ class Verification extends Model
     ];
 
     public function usersInfo(){
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class,'user_id');
     }
 }

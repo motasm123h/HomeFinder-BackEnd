@@ -20,7 +20,7 @@ return new class extends Migration
             $table->enum('status',['closed', 'open'])->default('open');
             $table->enum('type',['rental', 'sale'])->default('sale');
             $table->integer('price');
-            $table->enum('hidden',['true', 'false'])->default('false');
+            $table->enum('hidden',[1, 0])->default(0);
             $table->string('description');
             $table->integer('total_weight')->default(0);
             $table->enum('kind',['apartment', 'villa', 'chalet'])->default('apartment');

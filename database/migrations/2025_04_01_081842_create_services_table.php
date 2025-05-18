@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('title');
             $table->text('description');
             $table->foreignIdFor(User::class)->constrained()->onDelete('cascade');
-            $table->foreignIdFor(Services_Type::class)->constrained()->onDelete('cascade');
+            $table->foreignIdFor(Services_Type::class, 'services_type_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }

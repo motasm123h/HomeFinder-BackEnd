@@ -24,8 +24,8 @@ class OfficeService
         return $this->repository->create($data);
     }
 
-    public function deleteRequest(string $pro="sender_id",int $id): bool
+    public function deleteRequest(int $id): bool
     {
-        return $this->repository->delete($pro,$id);
+        return $this->repository->delete($id);
     }
 }

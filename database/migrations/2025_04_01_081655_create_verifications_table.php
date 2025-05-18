@@ -14,8 +14,8 @@ return new class extends Migration
     {
         Schema::create('verifications', function (Blueprint $table) {
             $table->id();
-            $table->integer('national_no');
-            $table->integer('identity_no');
+            $table->string('national_no');
+            $table->string('identity_no');
             $table->string('identity_image');
             $table->string('contract_image');
             $table->enum('activation',['0','1']);

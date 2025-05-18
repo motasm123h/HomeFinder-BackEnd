@@ -28,8 +28,8 @@ class OfficeRepository extends Repo
         return parent::create($data);
     }
 
-    public function delete(string $pro,int $id):bool
+    public function delete(int $id):bool
     {
-        return parent::delete($pro,$id);
+        return parent::delete($id);
     }
 }
