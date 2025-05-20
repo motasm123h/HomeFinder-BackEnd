@@ -9,8 +9,9 @@ class CommonController extends Controller
 {
     public function create(Request $request){
         $atter = $request->validate([
-            'title' =>['required'],
-            'Descripition' =>['required'],
+            'name' =>['required'],
+            'phone' =>['required'],
+            'descripition' =>['required'],
         ]);
 
         $com = Reviews::create($atter);

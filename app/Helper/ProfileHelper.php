@@ -62,7 +62,7 @@ class ProfileHelper
         ];
     }
 
-    protected static function formatRealEstate(User $user): array
+    public static function formatRealEstate(User $user): array
     {
         if (!$user->relationLoaded('realEstate')) {
             return [];
@@ -76,16 +76,32 @@ class ProfileHelper
                     ? '$'.number_format($property->price) 
                     : 'Contact for price',
                 'status' => $property->status,
-                'coordinates' => [
-                    'lat' => $property->latitude,
-                    'lng' => $property->longitude
-                ],
+                'location' => $item->location ? [
+                    'city' => $item->location->city,
+                    'district' => $item->location->district,
+                ] : null,
+                'images' => $property->images->map(function ($image) {
+                    return ['name' => $image->name];
+                }),
                 'details' => [
                     'kind' => $property->kind,
+                    // 'room_no' => $properties->properties->room_no,
                     'description' => $property->description ?: 'No description'
                 ]
             ];
         })->toArray();
+
+
+
+        // return [
+        //     'properties' => $item->properties ? [
+        //         'room_no' => $item->properties->room_no,
+        //         'space_status' => $item->properties->space_status,
+        //         'kind' => $item->properties->kind,
+        //         'floor' => $item->properties->floor,
+        //         'description' => $item->properties->description,
+        //     ] : null,
+        // ];
     }
 
     protected static function formatServices(User $user): array

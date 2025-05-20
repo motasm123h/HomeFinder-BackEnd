@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use App\Helper\ProfileHelper;
+use App\Helper\RealEstateHelper;
 
 class AuthController extends Controller
 {
@@ -98,49 +99,72 @@ class AuthController extends Controller
         }
     }
 
-   public function profile(int $id)
+public function profile(int $id)
+{
+    try {
+        $user = User::with(['address', 'contact'])->findOrFail($id);
+        
+        // Paginated real estate with images
+        $realEstates = $user->realEstate()
+            ->with(['images' => fn($q) => $q->limit(1), 'properties'])
+            ->paginate(10);
+            
+        // Paginated services
+        $services = $user->service()->paginate(10);
+        
+        // Format data
+        $formattedData = ProfileHelper::formatUserProfile($user);
+        $formattedData['realEstate'] = array_map(
+            fn ($item) => RealEstateHelper::formatRealEstate($item),
+            $realEstates->items()
+        );
+        $formattedData['service'] = $services->items();
+
+        return response()->json([
+            'message' => 'Profile retrieved successfully',
+            'data' => $formattedData,
+            'meta' => [
+                'realEstate' => $this->buildPaginationMeta($realEstates),
+                'service'    => $this->buildPaginationMeta($services),
+            ],
+            'links' => [
+                'realEstate' => $this->buildPaginationLinks($realEstates),
+                'service'    => $this->buildPaginationLinks($services),
+            ]
+        ]);
+
+    } catch (ModelNotFoundException $e) {
+        return response()->json(['message' => 'User not found'], 404);
+    } catch (\Exception $e) {
+        \Log::error("Profile error: " . $e->getMessage());
+        return response()->json([
+            'message' => 'Failed to retrieve profile',
+            'error' => config('app.debug') ? $e->getMessage() : null
+        ], 500);
+    }
+}
+
+    // Helper methods to reduce duplication
+    private function buildPaginationMeta($paginator)
     {
-        try {
-            $user = User::with([
-                'address', 
-                'contact',
-                'realEstate' => function($query) {
-                    $query->limit(10);
-                },
-                'service' => function($query) {
-                    $query->limit(10);
-                }
-            ])->findOrFail($id);
+        return [
+            'total'        => $paginator->total(),
+            'current_page' => $paginator->currentPage(),
+            'per_page'    => $paginator->perPage(),
+            'last_page'    => $paginator->lastPage(),
+            'from'         => $paginator->firstItem(),
+            'to'           => $paginator->lastItem(),
+        ];
+    }
 
-            $formattedData = ProfileHelper::formatUserProfile($user);
-
-            return response()->json([
-                'message' => 'Profile retrieved successfully',
-                'data' => $formattedData,
-                'meta' => [
-                    'realEstate' => [
-                        'total' => $user->realEstate()->count(),
-                        'remaining' => max(0, $user->realEstate()->count() - 10)
-                    ],
-                    'service' => [
-                        'total' => $user->service()->count(),
-                        'remaining' => max(0, $user->service()->count() - 10)
-                    ]
-                ]
-            ]);
-
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return response()->json([
-                'message' => 'User not found',
-                'data' => null
-            ], 404);
-        } catch (\Exception $e) {
-            \Log::error("Profile retrieval error: " . $e->getMessage());
-            return response()->json([
-                'message' => 'Failed to retrieve profile',
-                'error' => config('app.debug') ? $e->getMessage() : null
-            ], 500);
-        }
+    private function buildPaginationLinks($paginator)
+    {
+        return [
+            'first_page_url' => $paginator->url(1),
+            'last_page_url'  => $paginator->url($paginator->lastPage()),
+            'next_page_url'  => $paginator->nextPageUrl(),
+            'prev_page_url' => $paginator->previousPageUrl(),
+        ];
     }
 
     public function resetPassword(Request $request){

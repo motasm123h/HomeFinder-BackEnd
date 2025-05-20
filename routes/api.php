@@ -28,6 +28,8 @@ Route::get('/sanctum/csrf-cookie', function (Request $request) {
 Route::prefix('services/')->group(function(){
     Route::get('index',[ServicesController::class,'index']);
     Route::get('index/{id}',[ServicesController::class,'show']);
+    Route::get('servicesType',[ServicesController::class,'indexType']);
+    Route::get('servicesType/{id}',[ServicesController::class,'showServiceByType']);
     Route::get('office/{id}',[ServicesController::class,'officeService']);
 });
 

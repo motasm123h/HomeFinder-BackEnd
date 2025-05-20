@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Services_Type;
 use Illuminate\Http\Request;
 use App\Services\ServiceService;
 use App\Services\ServiceTypeService;
@@ -20,7 +21,7 @@ class ServicesController extends Controller
     public function index()
     {
         try {
-            $services = $this->service->getAllPaginated();
+            $services = $this->service->getAllPaginated(10);
             
             return response()->json([
                 'success' => true,
@@ -28,12 +29,30 @@ class ServicesController extends Controller
             ]);
             
         } catch (\Exception $e) {
+            dd($e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage()
             ], $e->getCode() ?: 500);
         }
     }
+
+    public function indexType(){
+        $service_type =  Services_Type::all();
+        return response()->json([
+            'success' => true,
+                'data' => $service_type
+        ]);
+    }
+    public function showServiceByType(int $id){
+        $service_type =  Services_Type::where('id',$id)->first();;
+        return response()->json([
+            'success' => true,
+                'data' => $service_type->load('servicesInfo.usersInfo'),
+        ]);
+    }
+
+
 
     public function show($id)
     {
