@@ -104,15 +104,12 @@ public function profile(int $id)
     try {
         $user = User::with(['address', 'contact'])->findOrFail($id);
         
-        // Paginated real estate with images
         $realEstates = $user->realEstate()
             ->with(['images' => fn($q) => $q->limit(1), 'properties'])
             ->paginate(10);
             
-        // Paginated services
         $services = $user->service()->paginate(10);
         
-        // Format data
         $formattedData = ProfileHelper::formatUserProfile($user);
         $formattedData['realEstate'] = array_map(
             fn ($item) => RealEstateHelper::formatRealEstate($item),

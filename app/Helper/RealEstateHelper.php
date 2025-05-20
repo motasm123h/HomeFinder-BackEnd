@@ -21,7 +21,7 @@ class RealEstateHelper {
                 'space_status' => $item->properties->space_status,
                 'kind' => $item->properties->kind,
                 'floor' => $item->properties->floor,
-                'description' => $item->properties->description,
+                'description' => $item->description,
             ] : null,
         ];
     }
