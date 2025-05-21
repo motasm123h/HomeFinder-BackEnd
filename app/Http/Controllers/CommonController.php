@@ -27,4 +27,11 @@ class CommonController extends Controller
             'data'=>$com,
         ]);
     }
+
+    public function delete(int $id){
+        $data = Reviews::where('id',$id)->first();
+        return response()->json([
+            'data' => $data->delete(),
+        ]);
+    }
 }

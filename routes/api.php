@@ -85,6 +85,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::prefix('complaint/')->group(function(){
         Route::get('index',[CommonController::class,'index']);
+        Route::post('delete/{id}',[CommonController::class,'delete']);
     });
     
     
