@@ -103,18 +103,20 @@ public function profile(int $id)
 {
     try {
         $user = User::with(['address', 'contact'])->findOrFail($id);
-        
+        // return $user;
         $realEstates = $user->realEstate()
             ->with(['images' => fn($q) => $q->limit(1), 'properties'])
             ->paginate(10);
             
         $services = $user->service()->paginate(10);
-        
+        $verification = $user->verification()->get();
+        // return $verification;
         $formattedData = ProfileHelper::formatUserProfile($user);
         $formattedData['realEstate'] = array_map(
             fn ($item) => RealEstateHelper::formatRealEstate($item),
             $realEstates->items()
         );
+        $formattedData['verification'] = $verification;
         $formattedData['service'] = $services->items();
 
         return response()->json([

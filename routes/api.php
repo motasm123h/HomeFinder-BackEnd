@@ -56,9 +56,9 @@ Route::prefix('office/')->group(function(){
 });
 
 Route::get('profile/{id}',[AuthController::class,'profile']);
+Route::get('/admin/users', [AdminController::class, 'index']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/admin/users', [AdminController::class, 'index']);
     
     Route::get('getNotifications', [NotiController::class, 'getNotifications']);
     Route::get('deleteNotification/{id}', [NotiController::class, 'deleteNotification']);
