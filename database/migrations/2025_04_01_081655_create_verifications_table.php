@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('identity_no');
             $table->string('identity_image');
             $table->string('contract_image');
-            $table->enum('activation',['0','1']);
+            $table->enum('activation', ['0', '1'])->default(0);
             $table->foreignIdFor(User::class)->constrained()->onDelete('cascade');
             $table->timestamps();
         });

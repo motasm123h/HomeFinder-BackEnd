@@ -7,11 +7,16 @@ use App\Services\SearchService;
 use App\Models\RealEstate;
 use App\Models\RealEstate_Location;
 use App\Services\PropertyMatcher;
+use App\Traits\ResponseTrait;
 
 class SearchController extends Controller
 {
-    public function __construct(private SearchService $searchService){
+    use ResponseTrait;
 
+    protected PropertyMatcher $propertyMatcher;
+    public function __construct(private SearchService $searchService, PropertyMatcher $propertyMatcher)
+    {
+        $this->propertyMatcher = $propertyMatcher;
     }
     public function mostSearched()
     {
@@ -20,30 +25,43 @@ class SearchController extends Controller
     }
 
 
-    public function mostWatch(){
+    public function mostWatch()
+    {
         $results = $this->searchService->getMostWatchedRealEstates();
         return response()->json($results);
     }
-   
-    public function preferences(Request $request){
+
+    public function preferences(Request $request)
+    {
         $validated = $request->validate([
-            'room_no' => 'sometimes|integer',
-            'price' => 'sometimes|in:1,2,3',
-            'space_status' => 'sometimes|integer',
+            'room_no' => 'sometimes|integer|min:0',
+            'price' => 'sometimes|numeric|min:0',
+            'space_status' => 'sometimes|integer|min:0',
+            'electricity_status' => 'sometimes|in:1,2,3',
+            'water_status' => 'sometimes|in:1,2,3',
+            'transportation_status' => 'sometimes|in:1,2,3',
+            'water_well' => 'sometimes|in:1,2',
+            'solar_energy' => 'sometimes|in:1,2',
+            'garage' => 'sometimes|in:1,2',
+            'direction' => 'sometimes|in:1,2,3',
+            'elevator' => 'sometimes|in:1,2',
+            'floor' => 'sometimes|integer',
+            'garden_status' => 'sometimes|in:1,2',
+            'attired' => 'sometimes|in:1,2,3',
+            'ownership_type' => 'sometimes|in:green,court',
         ]);
 
-        $matcher = new PropertyMatcher();
-        $results = $matcher->findMatches($validated);
-        return response()->json([
-            'matches' => $results,
-            'searchInput' => $validated
-        ]);
-        
+        $results = $this->propertyMatcher->findMatches($validated);
+        return $this->apiResponse(
+            'Preference-based real estates retrieved successfully',
+            [
+                'matches' => $results,
+                'searchInput' => $validated
+            ],
+            200
+        );
     }
-    
-    public function byLocation(Request $request){
-
-    }
+    public function byLocation(Request $request) {}
 
     // public function search(Request $request)
     // {
@@ -123,15 +141,15 @@ class SearchController extends Controller
                 $results->where('type', $type);
                 break;
 
-            default: 
+            default:
                 $locationIds = RealEstate_Location::where('district', 'like', '%' . $query . '%')
                     ->pluck('id');
                 $results->where(function ($q) use ($query, $locationIds) {
                     $q->where('description', 'like', "%$query%")
-                    ->orWhereIn('real_estate_location_id', $locationIds)
-                    ->orWhereHas('properties', function ($q) use ($query) {
-                        $q->where('direction', 'like', "%$query%");
-                    });
+                        ->orWhereIn('real_estate_location_id', $locationIds)
+                        ->orWhereHas('properties', function ($q) use ($query) {
+                            $q->where('direction', 'like', "%$query%");
+                        });
                 });
         }
 
@@ -206,9 +224,6 @@ class SearchController extends Controller
             }
         }
 
-        return 'any'; 
+        return 'any';
     }
-
-
-
 }

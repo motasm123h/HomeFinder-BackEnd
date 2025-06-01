@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RealEstate_images extends Model
 {
-    protected $fillable = ['name','real_estate_id'];
+    protected $fillable = ['name', 'real_estate_id', 'type'];
 
 
     /**

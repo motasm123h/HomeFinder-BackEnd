@@ -7,182 +7,83 @@ use App\Models\Services_Type;
 use Illuminate\Http\Request;
 use App\Services\ServiceService;
 use App\Services\ServiceTypeService;
-
+use App\Traits\ResponseTrait;
+use App\Exceptions\ApiException;
 
 class ServicesController extends Controller
 {
-    
-  public function __construct(
+    use ResponseTrait;
+
+    public function __construct(
         private ServiceService $service,
         private ServiceTypeService $serviceTypeService
     ) {}
 
-    
     public function index()
     {
-        try {
-            $services = $this->service->getAllPaginated(10);
-            
-            return response()->json([
-                'success' => true,
-                'data' => $services
-            ]);
-            
-        } catch (\Exception $e) {
-            dd($e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], $e->getCode() ?: 500);
+        $services = $this->service->getAllPaginated(10);
+        return $this->apiResponse('Services retrieved successfully', $services, 200);
+    }
+
+    public function indexType()
+    {
+        $service_type = Services_Type::all();
+        return $this->apiResponse('Service types retrieved', $service_type, 200);
+    }
+
+    public function showServiceByType(int $id)
+    {
+        $service_type = Services_Type::where('id', $id)->first();
+        if (!$service_type) {
+            throw new ApiException('Service type not found', 404);
         }
-    }
 
-    public function indexType(){
-        $service_type =  Services_Type::all();
-        return response()->json([
-            'success' => true,
-                'data' => $service_type
-        ]);
+        return $this->apiResponse('Service type with services retrieved', $service_type->load('servicesInfo.usersInfo'), 200);
     }
-    public function showServiceByType(int $id){
-        $service_type =  Services_Type::where('id',$id)->first();;
-        return response()->json([
-            'success' => true,
-                'data' => $service_type->load('servicesInfo.usersInfo'),
-        ]);
-    }
-
-
 
     public function show($id)
     {
-        try {
-            $service = $this->service->findById($id);
-            
-            return response()->json([
-                'success' => true,
-                'data' => $service
-            ]);
-            
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], $e->getCode() ?: 404);
-        }
+        $service = $this->service->findById($id);
+        return $this->apiResponse('Service retrieved', $service, 200);
     }
 
     public function create(Request $request)
     {
-        try {
-            $service = $this->service->create($request->all());
-            
-            return response()->json([
-                'success' => true,
-                'data' => $service
-            ], 201);
-            
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'errors' => $e->errors()
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], $e->getCode() ?: 500);
-        }
+        $service = $this->service->create($request->all());
+        return $this->apiResponse('Service created successfully', $service, 201);
     }
 
     public function update(Request $request, $id)
     {
-        try {
-            $service = $this->service->update($id, $request->all());
-            
-            return response()->json([
-                'success' => true,
-                'data' => $service
-            ]);
-            
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'errors' => $e->errors()
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], $e->getCode() ?: 500);
-        }
+        $service = $this->service->update($id, $request->all());
+        return $this->apiResponse('Service updated successfully', $service, 200);
     }
 
     public function delete($id)
     {
-        try {
-            $this->service->delete($id);
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Service deleted successfully'
-            ]);
-            
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], $e->getCode() ?: 500);
-        }
+        $this->service->delete($id);
+        return $this->apiResponse('Service deleted successfully', null, 200);
     }
 
     public function createServiceType(Request $request)
     {
-        try {
-            $serviceType = $this->serviceTypeService->create($request->all());
-            
-            return response()->json([
-                'success' => true,
-                'data' => $serviceType
-            ], 201);
-            
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'errors' => $e->errors()
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], $e->getCode() ?: 500);
-        }
+        $serviceType = $this->serviceTypeService->create($request->all());
+        return $this->apiResponse('Service type created successfully', $serviceType, 201);
     }
 
     public function deleteServiceType(int $id)
     {
-        try {
-            $id = (int)$id; 
-            $this->serviceTypeService->delete($id);
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Service type deleted successfully'
-            ]);
-            
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], $e->getCode() ?: 500);
-        }
+        $this->serviceTypeService->delete($id);
+        return $this->apiResponse('Service type deleted successfully', null, 200);
     }
 
+    public function officeService(int $id)
+    {
+        $user = User::where('id', $id)->with('service')->first();
+        if (!$user) {
+            throw new ApiException('User not found', 404);
+        }
 
-    public function officeService(int $id){
-        $user = User::where('id',$id)->with('service')->first();
-        return response()->json([
-            'data' => $user,
-        ]);
+        return $this->apiResponse('Office service retrieved', $user, 200);
     }
 }

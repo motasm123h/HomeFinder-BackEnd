@@ -3,80 +3,95 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreRealEstateRequestRequest;
+use App\Http\Requests\StoreRealEstateRequestRequest; // Assuming this is correct request for OfficeController
 use App\Models\User;
 use App\Notifications\SendRequestNotification;
 use App\Services\OfficeService;
 use Illuminate\Http\JsonResponse;
 use App\Policies\PostPolicy;
-
+use App\Traits\ResponseTrait;
+use App\Exceptions\ApiException; // Import your custom exception
+use Illuminate\Database\Eloquent\ModelNotFoundException; // Keep this to throw explicitly if needed
 
 class OfficeController extends Controller
 {
+    use ResponseTrait;
+
     public function __construct(private OfficeService $service) {}
 
     public function getPaginatedRequests(): JsonResponse
     {
-        return response()->json([
-            'data' => $this->service->getPaginatedRequests(),
-        ]);
+        return $this->apiResponse(
+            'Data retrieved',
+            $this->service->getPaginatedRequests(),
+            200
+        );
     }
+
     public function getPaginatedSent(): JsonResponse
     {
-        return response()->json([
-            'data' => $this->service->getPaginatedSent(),
-        ]);
+        return $this->apiResponse(
+            'Data retrieved',
+            $this->service->getPaginatedSent(),
+            200
+        );
     }
-    
-    public function details(int $id){
-        $data = User::where('id',$id)->frist();
 
-        return respnse()->json([
-            'data' => $data->load('contact','address','service','realEstate','verification'),
-        ]);
+    public function details(int $id): JsonResponse
+    {
+        // Using findOrFail will automatically throw ModelNotFoundException if not found,
+        // which your Handler will catch and turn into a 404.
+        $data = User::findOrFail($id);
+
+        return $this->apiResponse(
+            'Data retrieved',
+            $data->load('contact', 'address', 'service', 'realEstate', 'verification'),
+            200
+        );
     }
 
     public function create(StoreRealEstateRequestRequest $request): JsonResponse
     {
-        $validated = $request->validated();
-        // $user= User::where('id',$validated['user_id'])->first();
-        // if ((new PostPolicy)->createRequest($user, $validated)) {
-        //     return response()->json(['message' => 'Unauthorized'], 403);
-        // }
+        $validated = $request->validated(); // Validation handled by Form Request
 
-        try {
-            $realEstateRequest = $this->service->createRequest($validated);
-            
-            $user = User::findOrFail($validated['user_id']);
-            
-            $user->notify(new SendRequestNotification($realEstateRequest));
-            
-            return response()->json([
-                'data' => $realEstateRequest,
-                'message' => 'Request created and notification sent successfully'
-            ], 201);
-            
-        } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'message' => 'User not found'
-            ], 404);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Failed to create request',
-                'error' => $e->getMessage() 
-            ], 500);
-        }
+        // The service should ideally throw exceptions for specific errors
+        $realEstateRequest = $this->service->createRequest($validated);
+
+        // This findOrFail will throw ModelNotFoundException if user is not found,
+        // caught by the Handler.
+        $user = User::findOrFail($validated['user_id']);
+        $user->notify(new SendRequestNotification($realEstateRequest));
+
+        return $this->apiResponse(
+            'Request created and notification sent successfully',
+            $realEstateRequest,
+            201
+        );
     }
+
     public function delete(int $id): JsonResponse
     {
-        if (!(new PostPolicy)->delete(auth()->user(), (int)$id)) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+        // Policy check remains here as it's authorization logic
+        if (!(new PostPolicy)->delete(auth()->user(), $id)) {
+            // Throwing an ApiException for an unauthorized scenario
+            throw new ApiException('Unauthorized', 403);
         }
 
+        // The service should ideally throw ModelNotFoundException if the request to delete doesn't exist.
+        // If it returns false for other reasons, you might need a custom exception from the service.
         $success = $this->service->deleteRequest($id);
 
-        return response()->json([
-            'data' => $success,
-        ], $success ? 200 : 404);
+        if (!$success) {
+            // If deleteRequest returns false because the item wasn't found,
+            // or if it should throw a ModelNotFoundException internally, that's better.
+            // For now, assuming false means "not found" or "failed deletion".
+            throw new ApiException('Request not found or failed to delete', 404);
+        }
+
+        return $this->apiResponse(
+            'Request deleted successfully',
+            null,
+            200
+        );
     }
 }

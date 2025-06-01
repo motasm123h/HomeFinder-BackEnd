@@ -8,12 +8,24 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RealEstate_properties extends Model
 {
-    
+
     protected $fillable = [
-        'electricity_status', 'water_status', 'transportation_status',
-        'water_well', 'solar_energy', 'garage', 'room_no',
-        'direction', 'space_status', 'elevator', 'floor', 'garden_status',
-        'attired', 'ownership_type','total_weight','real_estate_id'
+        'electricity_status',
+        'water_status',
+        'transportation_status',
+        'water_well',
+        'solar_energy',
+        'garage',
+        'room_no',
+        'direction',
+        'space_status',
+        'elevator',
+        'floor',
+        'garden_status',
+        'attired',
+        'ownership_type',
+        'total_weight',
+        'real_estate_id'
     ];
 
 

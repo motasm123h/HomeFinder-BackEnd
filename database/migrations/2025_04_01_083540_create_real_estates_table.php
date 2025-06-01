@@ -17,13 +17,13 @@ return new class extends Migration
             $table->id();
             $table->float('latitude')->default(0);
             $table->float('longitude')->default(0);
-            $table->enum('status',['closed', 'open'])->default('open');
-            $table->enum('type',['rental', 'sale'])->default('sale');
-            $table->integer('price');
-            $table->enum('hidden',[1, 0])->default(0);
+            $table->enum('status', ['closed', 'open'])->default('open')->index();
+            $table->enum('type', ['rental', 'sale'])->default('sale')->index();
+            $table->integer('price')->index();
+            $table->enum('hidden', [1, 0])->default(0);
             $table->string('description');
             $table->integer('total_weight')->default(0);
-            $table->enum('kind',['apartment', 'villa', 'chalet'])->default('apartment');
+            $table->enum('kind', ['apartment', 'villa', 'chalet', 'شقة', 'فيلا', 'شاليه'])->default('apartment')->index();
             $table->foreignIdFor(User::class)->constrained()->onDelete('cascade');
             $table->foreignId('real_estate_location_id')->constrained('real_estate_locations')->onDelete('cascade');
             $table->timestamps();

@@ -14,9 +14,8 @@ return new class extends Migration
     {
         Schema::create('search_logs', function (Blueprint $table) {
             $table->id();
-            $table->string('key');
-            $table->string('value');
-            // $table->foreignIdFor(User::class)->constrained()->onDelete('cascade');
+            $table->string('key')->index();
+            $table->string('value')->index();
             $table->timestamps();
         });
     }

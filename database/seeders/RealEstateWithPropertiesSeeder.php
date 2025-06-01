@@ -59,7 +59,7 @@ class RealEstateWithPropertiesSeeder extends Seeder
                 'price' => rand(100000, 5000000),
                 'description' => "Beautiful property in excellent location $i",
                 'kind' => $kinds[array_rand($kinds)],
-                'user_id' => $user->id,  
+                'user_id' => $user->id,
                 'real_estate_location_id' => $location->id,
                 'total_weight' => rand(1, 100),
             ]);
@@ -80,17 +80,17 @@ class RealEstateWithPropertiesSeeder extends Seeder
                 'attired' => $attiredOptions[array_rand($attiredOptions)],
                 'ownership_type' => $ownershipTypes[array_rand($ownershipTypes)],
                 'total_weight' => rand(1, 100),
-                'real_estate_id' => $realEstate->id  
+                'real_estate_id' => $realEstate->id
             ]);
 
             // $imageCount = rand(1, 2);
             // for ($j = 0; $j < $imageCount; $j++) {
             //     $imageUrl = $sampleImages[array_rand($sampleImages)];
             //     $imageName = 'property_' . $realEstate->id . '_' . time() . '_' . $j . '.jpg';
-                
+
             //     $contents = file_get_contents($imageUrl);
             //     Storage::put('public/real-estate-images/' . $imageName, $contents);
-                
+
             //     RealEstate_images::create([
             //         'name' => $imageName,
             //         'real_estate_id' => $realEstate->id

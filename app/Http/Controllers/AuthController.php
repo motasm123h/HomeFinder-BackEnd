@@ -14,110 +14,108 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator; // Needed for resetPassword inline validation
 use App\Helper\ProfileHelper;
 use App\Helper\RealEstateHelper;
+use App\Exceptions\ApiException; // Import your custom exception
+use Illuminate\Database\Eloquent\ModelNotFoundException; // To explicitly throw for not found scenarios
 
 class AuthController extends Controller
 {
     use ResponseTrait;
 
     public function register(RegisterRequest $request)
-    {   
-        
-        try {
-            return DB::transaction(function () use ($request) {
-                $validated = $request->validated();
-                
-                $user = User::create([
-                    'name' => $validated['name'],
-                    'email' => $validated['email'],
-                    'password' => Hash::make($validated['password']),
-                ]);
-    
-                $user->address()->create([
-                    'city' => $validated['city'],
-                    'district' => $validated['district'],
-                ]);
-    
-                $user->contact()->create([
-                    'phone_no' => $validated['phone_no'],
-                    'username' => $validated['username'],
-                ]);
-    
-                return $this->apiResponse(
-                    'Registration successful',
-                    $user->append('token'),
-                    201
-                );
-            });
-        } catch (\Exception $e) {
-            \Log::error("Registration failed: " . $e->getMessage());
+    {
+        return DB::transaction(function () use ($request) {
+            $validated = $request->validated(); // Validation handled by Form Request
+
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+            ]);
+
+            $user->address()->create([
+                'city' => $validated['city'],
+                'district' => $validated['district'],
+            ]);
+
+            $user->contact()->create([
+                'phone_no' => $validated['phone_no'],
+                'username' => $validated['username'],
+            ]);
+
             return $this->apiResponse(
-                'Registration failed',
-                ['error' => $e->getMessage()],
-                500
+                'Registration successful',
+                $user->append('token'),
+                201
             );
-        }
+        });
+    }
+
+    public function registerAdmin(Request $request)
+    {
+        return DB::transaction(function () use ($request) {
+            $validated = $request->validate([
+                'name' => 'required|string',
+                'email' => 'required|email|unique:users',
+                'password' => 'required|min:8'
+            ]);
+
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role' => 1,
+            ]);
+
+            return $this->apiResponse(
+                'Registration successful',
+                $user->append('token'),
+                201
+            );
+        });
     }
 
     public function login(LoginRequest $request)
     {
-        try {
-            $credentials = $request->validated();
-    
-            if (!Auth::attempt($credentials)) {
-                return $this->apiResponse('Invalid credentials', null, 401);
-            }
-    
-            return $this->apiResponse(
-                'Login successful',
-                auth()->user()->append('token'),
-                200
-            );
-        } catch (\Exception $e) {
-            \Log::error("Login failed: " . $e->getMessage());
-            return $this->apiResponse(
-                'Login failed',
-                ['error' => $e->getMessage()],
-                500
-            );
+        $credentials = $request->validated();
+
+        if (!Auth::attempt($credentials)) {
+            throw new ApiException('Invalid credentials', 401);
         }
+
+        return $this->apiResponse(
+            'Login successful',
+            auth()->user()->append('token'),
+            200
+        );
     }
 
     public function logout()
     {
-        try {
-            optional(auth()->user())->tokens()->delete();
-            return $this->apiResponse('Logged out successfully', null, 200);
-        } catch (\Exception $e) {
-            \Log::error("Logout failed: " . $e->getMessage());
-            return $this->apiResponse(
-                'Logout failed',
-                ['error' => $e->getMessage()],
-                500
-            );
-        }
+        optional(auth()->user())->tokens()->delete();
+        return $this->apiResponse('Logged out successfully', null, 200);
     }
 
-public function profile(int $id)
-{
-    try {
+    public function profile(int $id)
+    {
+
         $user = User::with(['address', 'contact'])->findOrFail($id);
-        // return $user;
         $realEstates = $user->realEstate()
             ->with(['images' => fn($q) => $q->limit(1), 'properties'])
             ->paginate(10);
-            
+
         $services = $user->service()->paginate(10);
         $verification = $user->verification()->get();
-        // return $verification;
         $formattedData = ProfileHelper::formatUserProfile($user);
         $formattedData['realEstate'] = array_map(
-            fn ($item) => RealEstateHelper::formatRealEstate($item),
+            fn($item) => RealEstateHelper::formatRealEstate($item),
             $realEstates->items()
         );
         $formattedData['verification'] = $verification;
         $formattedData['service'] = $services->items();
+
 
         return response()->json([
             'message' => 'Profile retrieved successfully',
@@ -131,25 +129,14 @@ public function profile(int $id)
                 'service'    => $this->buildPaginationLinks($services),
             ]
         ]);
-
-    } catch (ModelNotFoundException $e) {
-        return response()->json(['message' => 'User not found'], 404);
-    } catch (\Exception $e) {
-        \Log::error("Profile error: " . $e->getMessage());
-        return response()->json([
-            'message' => 'Failed to retrieve profile',
-            'error' => config('app.debug') ? $e->getMessage() : null
-        ], 500);
     }
-}
 
-    // Helper methods to reduce duplication
     private function buildPaginationMeta($paginator)
     {
         return [
             'total'        => $paginator->total(),
             'current_page' => $paginator->currentPage(),
-            'per_page'    => $paginator->perPage(),
+            'per_page'     => $paginator->perPage(),
             'last_page'    => $paginator->lastPage(),
             'from'         => $paginator->firstItem(),
             'to'           => $paginator->lastItem(),
@@ -166,38 +153,26 @@ public function profile(int $id)
         ];
     }
 
-    public function resetPassword(Request $request){
-        try {
-            $validator = Validator::make($request->all(), [
-                'email' => 'required|email|exists:users,email',
-                'password' => 'required|min:8|confirmed'
-            ]);
-    
-            if ($validator->fails()) {
-                return $this->apiResponse(
-                    'Validation failed',
-                    ['errors' => $validator->errors()],
-                    422
-                );
-            }
-    
-            $validated = $validator->validated();
-            
-            User::where('email', $validated['email'])
-                ->update(['password' => Hash::make($validated['password'])]);
-    
-            return $this->apiResponse(
-                'Password updated successfully',
-                null,
-                200
-            );
-        } catch (\Exception $e) {
-            \Log::error("Password reset failed: " . $e->getMessage());
-            return $this->apiResponse(
-                'Password reset failed',
-                ['error' => $e->getMessage()],
-                500
-            );
+    public function resetPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email',
+            'password' => 'required|min:8|confirmed'
+        ]);
+
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
         }
+
+        $validated = $validator->validated();
+
+        User::where('email', $validated['email'])
+            ->update(['password' => Hash::make($validated['password'])]);
+
+        return $this->apiResponse(
+            'Password updated successfully',
+            null,
+            200
+        );
     }
 }

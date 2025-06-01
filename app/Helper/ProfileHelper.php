@@ -72,8 +72,8 @@ class ProfileHelper
             return [
                 'id' => $property->id,
                 'type' => ucfirst($property->type),
-                'price' => $property->price > 0 
-                    ? '$'.number_format($property->price) 
+                'price' => $property->price > 0
+                    ? '$' . number_format($property->price)
                     : 'Contact for price',
                 'status' => $property->status,
                 'location' => $item->location ? [
@@ -81,7 +81,7 @@ class ProfileHelper
                     'district' => $item->location->district,
                 ] : null,
                 'images' => $property->images->map(function ($image) {
-                    return ['name' => $image->name];
+                    return ['name' => $image->name, 'type' => $image->type];
                 }),
                 'details' => [
                     'kind' => $property->kind,
@@ -91,32 +91,21 @@ class ProfileHelper
             ];
         })->toArray();
 
-
-
-        // return [
-        //     'properties' => $item->properties ? [
-        //         'room_no' => $item->properties->room_no,
-        //         'space_status' => $item->properties->space_status,
-        //         'kind' => $item->properties->kind,
-        //         'floor' => $item->properties->floor,
-        //         'description' => $item->properties->description,
-        //     ] : null,
-        // ];
     }
 
     protected static function formatServices(User $user): array
     {
-       
 
-         return $user->service->map(function ($property) {
+
+        return $user->service->map(function ($property) {
             return [
                 'id' => $property->id,
                 'title' => ucfirst($property->title),
                 'description' => ucfirst($property->description),
-                
+
                 'services_type_id' => $property->services_type_id,
                 'user_id' => $property->user_id,
-                
+
             ];
         })->toArray();
     }
@@ -129,7 +118,7 @@ class ProfileHelper
 
     protected static function formatRole(string $role): string
     {
-        return match($role) {
+        return match ($role) {
             '0' => 'Regular User',
             '1' => 'Admin',
             '2' => 'Agent',

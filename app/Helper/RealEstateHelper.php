@@ -4,13 +4,15 @@ namespace App\Helper;
 
 use App\Models\RealEstate;
 
-class RealEstateHelper {
-    public static function formatRealEstate(RealEstate $item): array {
+class RealEstateHelper
+{
+    public static function formatRealEstate(RealEstate $item): array
+    {
         return [
             'id' => $item->id,
             'price' => $item->price,
             'images' => $item->images->map(function ($image) {
-                return ['name' => $image->name];
+                return ['name' => $image->name, 'type' => $image->type];
             }),
             'location' => $item->location ? [
                 'city' => $item->location->city,

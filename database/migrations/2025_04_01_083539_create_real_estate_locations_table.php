@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('real_estate_locations', function (Blueprint $table) {
             $table->id();
-            $table->string('city');
-            $table->string('district');
+            $table->string('city')->index();
+            $table->string('district')->index();
             $table->timestamps();
         });
     }

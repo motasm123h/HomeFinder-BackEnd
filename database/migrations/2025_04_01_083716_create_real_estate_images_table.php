@@ -15,6 +15,8 @@ return new class extends Migration
         Schema::create('real_estate_images', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            // $table->string('name');
+            $table->enum('type', ['normal', '360'])->default('normal');
             $table->foreignIdFor(RealEstate::class)->constrained()->onDelete('cascade');
             $table->timestamps();
         });
