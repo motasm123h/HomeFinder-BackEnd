@@ -87,10 +87,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
 
-
-
-
-
     Route::get('/', [ServicesController::class, 'index']);
 
 
@@ -112,10 +108,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::get('verifications/', [VerificationController::class, 'index']);
             Route::post('verifications/create', [VerificationController::class, 'store']);
             Route::get('verifications/show/{id}', [VerificationController::class, 'show']);
-            Route::post('verifications/update/{id}', [VerificationController::class, 'update']);
             Route::post('verifications/delete/{id}', [VerificationController::class, 'destroy']);
             Route::post('/registerAdmin', [AuthController::class, 'registerAdmin']);
         });
+        Route::post('ver/update/{id}', [VerificationController::class, 'update']);
     });
 });
 

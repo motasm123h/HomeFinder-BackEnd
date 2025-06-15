@@ -50,13 +50,14 @@ class SearchController extends Controller
             'attired' => 'sometimes|in:1,2,3',
             'ownership_type' => 'sometimes|in:green,court',
         ]);
-
-        $results = $this->propertyMatcher->findMatches($validated);
+        // $t = RealEstate::where('price', $validated['price'])->get();
+        $results = $this->propertyMatcher->findMatches($validated, 10, 0);
         return $this->apiResponse(
             'Preference-based real estates retrieved successfully',
             [
                 'matches' => $results,
-                'searchInput' => $validated
+                'searchInput' => $validated,
+                // 'search' => $t
             ],
             200
         );

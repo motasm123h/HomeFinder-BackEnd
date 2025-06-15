@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Contact extends Model
 {
-    protected $fillable = ['phone_no', 'user_id','username'];
+    protected $fillable = ['phone_no', 'user_id', 'username'];
 
 
     /**
@@ -18,6 +18,6 @@ class Contact extends Model
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'foreign_key', 'other_key');
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

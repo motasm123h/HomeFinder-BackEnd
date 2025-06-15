@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
         $user = User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
+            'password' => '123456',
             'role' => '1',
         ]);
 
@@ -27,7 +28,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             DamascusLocationsSeeder::class,
             ServicesTypeSeeder::class,
-            RealEstateWithPropertiesSeeder::class,
+            // RealEstateWithPropertiesSeeder::class,
         ]);
     }
 }

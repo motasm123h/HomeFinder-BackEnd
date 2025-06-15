@@ -1,6 +1,9 @@
-<?php 
+<?php
+
 namespace App\services;
+
 use App\Repository\Models\AdminRepository;
+
 class AdminService
 {
     public function __construct(
@@ -9,8 +12,8 @@ class AdminService
 
     public function getAllAdminUsers(int $perPage = 15)
     {
-    return $this->repository->getAllByRole(0, $perPage);
-    }   
+        return $this->repository->getAllByRole(0, $perPage);
+    }
 
     public function changeActivation(string $status, int $id)
     {

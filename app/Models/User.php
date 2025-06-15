@@ -18,7 +18,7 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable,HasApiTokens;
+    use HasFactory, Notifiable, HasApiTokens;
 
     /**
      * The attributes that are mass assignable.
@@ -57,25 +57,31 @@ class User extends Authenticatable
         ];
     }
 
-    public function contact(){
-        return $this->hasMany(Contact::class);
+    public function contact()
+    {
+        return $this->hasMany(Contact::class, 'user_id');
     }
 
-    public function address(){
-        return $this->hasOne(Address::class);
+    public function address()
+    {
+        return $this->hasOne(Address::class, 'user_id');
     }
-    public function verification(){
-        return $this->hasOne(Verification::class,'user_id');
+    public function verification()
+    {
+        return $this->hasOne(Verification::class, 'user_id');
     }
 
-    public function realEstate(){
+    public function realEstate()
+    {
         return $this->hasMany(RealEstate::class);
     }
-    public function service(){
-        return $this->hasMany(Services::class,'user_id');
+    public function service()
+    {
+        return $this->hasMany(Services::class, 'user_id');
     }
-    
-    public function searchLog(){
+
+    public function searchLog()
+    {
         return $this->hasMany(Search_Log::class);
     }
 
@@ -83,7 +89,7 @@ class User extends Authenticatable
     {
         return $this->hasMany(RealEstate_Request::class, 'user_id');
     }
-    
+
     public function sentRealEstateRequests(): HasMany
     {
         return $this->hasMany(RealEstate_Request::class, 'user_id');

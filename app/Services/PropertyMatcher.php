@@ -2,11 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\RealEstate_properties;
 use App\Models\RealEstate;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log; // For debugging
+use Illuminate\Support\Facades\Log;
 
 class PropertyMatcher
 {
@@ -24,101 +22,112 @@ class PropertyMatcher
         $query = RealEstate::query()
             ->with(['properties', 'location', 'images', 'user']);
 
-        $query->join('real_estate_properties', 'real_estates.id', '=', 'real_estate_properties.real_estate_id');
-
         $scoreCalculations = [];
+        $scoreBindings = [];
+
+        // NEW: We will now also calculate the number of matched criteria.
+        $matchCountCalculations = [];
+        $matchCountBindings = [];
+
         $totalPossibleScore = 0;
 
         foreach ($userInput as $key => $value) {
-            $column = ($key === 'price') ? 'real_estates.price' : 'real_estate_properties.' . $key;
-
-            if (!isset($this->weights[$key])) {
+            if (empty($value) || !isset($this->weights[$key])) {
                 continue;
             }
 
             $weight = $this->weights[$key];
             $totalPossibleScore += $weight;
 
+            if ($key === 'price') {
+                $column = 'real_estates.price';
+            } else {
+                $column = "IFNULL(real_estate_properties.{$key}, 0)";
+            }
+
             if (isset($this->flexibleFields[$key]) && is_numeric($value)) {
                 $range = $this->flexibleFields[$key]['range'];
                 $weightReductionFactor = $this->flexibleFields[$key]['weight_reduction_factor'];
 
-                $query->where(function (Builder $q) use ($column, $value, $range) {
-                    $q->whereBetween($column, [$value - $range, $value + $range]);
-                });
+                // Calculation for the weighted score
+                $scoreCalculations[] = "
+                    (CASE
+                        WHEN ABS({$column} - ?) <= ?
+                        THEN {$weight} * (1 - (ABS({$column} - ?) / ?)) * (1 - {$weightReductionFactor})
+                        ELSE 0
+                    END)
+                ";
+                $scoreBindings = array_merge($scoreBindings, [$value, $range, $value, $range]);
 
-                $scoreCalculations[] = "
-                    (CASE
-                        WHEN ABS({$column} - {$value}) <= {$range}
-                        THEN {$weight} * (1 - (ABS({$column} - {$value}) / {$range})) * (1 - {$weightReductionFactor})
-                        ELSE 0
-                    END)
-                ";
+                // NEW: Calculation for the match count (1 if it matches, 0 if not)
+                $matchCountCalculations[] = "(CASE WHEN ABS({$column} - ?) <= ? THEN 1 ELSE 0 END)";
+                $matchCountBindings = array_merge($matchCountBindings, [$value, $range]);
             } else {
-                // Direct match for enum/boolean fields
-                // Ensure $value is properly quoted for direct matches to prevent SQL injection and errors
-                $quotedValue = DB::connection()->getPdo()->quote($value);
-                $scoreCalculations[] = "
-                    (CASE
-                        WHEN real_estate_properties.$key = {$quotedValue}
-                        THEN $weight
-                        ELSE 0
-                    END)
-                ";
-                // Add where clause for direct matches to narrow down results
-                $query->where("real_estate_properties.$key", $value);
+                // Calculation for the weighted score
+                $scoreCalculations[] = "(CASE WHEN {$column} = ? THEN {$weight} ELSE 0 END)";
+                $scoreBindings[] = $value;
+
+                // NEW: Calculation for the match count
+                $matchCountCalculations[] = "(CASE WHEN {$column} = ? THEN 1 ELSE 0 END)";
+                $matchCountBindings[] = $value;
             }
         }
 
-        // If no search criteria were provided, return a random set of RealEstate
-        // This acts as a fallback or default display.
-        if (empty($scoreCalculations)) {
-            // Use with('properties') here to ensure relations are loaded for random results too
+        if (empty($scoreCalculations) || $totalPossibleScore === 0) {
             return RealEstate::inRandomOrder()->limit($limit)->with(['properties', 'location', 'images', 'user'])->get();
         }
 
+        $query->leftJoin('real_estate_properties', 'real_estates.id', '=', 'real_estate_properties.real_estate_id');
+
         $scoreRaw = implode(' + ', $scoreCalculations);
+        $similarityRaw = "ROUND((({$scoreRaw}) / {$totalPossibleScore}) * 100, 2)";
+
+        // NEW: Create the raw SQL for the match count
+        $matchCountRaw = implode(' + ', $matchCountCalculations);
+
+        // Combine all bindings in the correct order for the final query
+        $allBindings = array_merge(
+            $scoreBindings,         // For the score calculation
+            $matchCountBindings,    // For the new match_count calculation
+            $scoreBindings          // Again for the similarity calculation
+        );
 
         try {
-            // Select all columns from real_estates table and the calculated score
-            // The `real_estates.*` is crucial to retrieve all original columns for the model
-            $query->selectRaw("real_estates.*, {$scoreRaw} AS score");
+            // NEW: Added `match_count` to the SELECT statement
+            $query->selectRaw(
+                "real_estates.*, 
+                ({$scoreRaw}) AS score, 
+                ({$matchCountRaw}) AS match_count, 
+                {$similarityRaw} AS similarity",
+                $allBindings
+            );
 
-            $query->orderByDesc('score');
+            $query->having('similarity', '>=', $minSimilarity);
+
+            // THE KEY CHANGE IS HERE: Order by match_count first, then by score.
+            $query->orderByDesc('match_count')
+                ->orderByDesc('score');
+
+            $query->groupBy('real_estates.id');
 
             $results = $query->limit($limit)->get();
 
-            return $results->map(function ($realEstate) use ($userInput, $totalPossibleScore) {
-                $score = $realEstate->score;
-                $similarity = $totalPossibleScore > 0 ? round(($score / $totalPossibleScore) * 100, 2) : 0;
-
-                // Pass the full RealEstate model to getMatchedFeatures, as it contains 'properties'
-                $matchedFeatures = $this->getMatchedFeatures($realEstate, $userInput);
-
+            return $results->map(function ($realEstate) use ($userInput) {
                 return [
                     'realEstate' => $realEstate,
-                    'score' => $score,
-                    'similarity' => $similarity,
-                    'matched_features' => $matchedFeatures,
+                    'score' => (float) $realEstate->score,
+                    'match_count' => (int) $realEstate->match_count, // Added match count to output
+                    'similarity' => (float) $realEstate->similarity,
+                    'matched_features' => $this->getMatchedFeatures($realEstate, $userInput),
                 ];
-            })->filter(fn($item) => $item['similarity'] >= $minSimilarity);
+            });
         } catch (\Exception $e) {
-            \Log::error('PropertyMatcher Error:', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
-                'score_raw_sql' => $scoreRaw ?? 'not generated',
-                'user_input' => $userInput
-            ]);
-            throw $e; // Re-throw to ensure it's caught by your global handler in bootstrap/app.php
+            Log::error('PropertyMatcher Error:', ['message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine(), 'user_input' => $userInput]);
+            throw $e;
         }
     }
 
-    /**
-     * Helper to determine which features matched and how.
-     * Accepts the RealEstate model (which contains the 'properties' relation).
-     */
+
     private function getMatchedFeatures($realEstate, $userInput)
     {
         $features = [];
@@ -127,10 +136,9 @@ class PropertyMatcher
         }
 
         foreach ($userInput as $key => $value) {
-            if (!isset($this->weights[$key])) continue;
+            if (empty($value) || !isset($this->weights[$key])) continue;
 
             $propertyValue = null;
-            // Check if the key is 'price' (on RealEstate model itself) or on 'properties' relation
             if ($key === 'price') {
                 $propertyValue = $realEstate->price;
             } elseif ($realEstate->properties && isset($realEstate->properties->$key)) {
@@ -138,7 +146,7 @@ class PropertyMatcher
             }
 
             if ($propertyValue === null) {
-                continue; // Skip if property value doesn't exist on either model
+                continue;
             }
 
             if (isset($this->flexibleFields[$key]) && is_numeric($value)) {
@@ -153,31 +161,17 @@ class PropertyMatcher
                         'match_type' => 'flexible',
                         'closeness' => round($closeness * 100) . '%',
                     ];
-                } else {
-                    $features[$key] = [
-                        'value' => $propertyValue,
-                        'user_input' => $value,
-                        'match_type' => 'out_of_range',
-                    ];
                 }
             } else {
-                // Direct match for enums/booleans
                 if ($propertyValue == $value) {
                     $features[$key] = [
                         'value' => $propertyValue,
                         'user_input' => $value,
                         'match_type' => 'exact',
                     ];
-                } else {
-                    $features[$key] = [
-                        'value' => $propertyValue,
-                        'user_input' => $value,
-                        'match_type' => 'no_match',
-                    ];
                 }
             }
         }
-
         return $features;
     }
 }

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Address extends Model
 {
-    protected $fillable = ['city', 'district','user_id'];
+    protected $fillable = ['city', 'district', 'user_id'];
 
 
     /**
@@ -18,6 +18,6 @@ class Address extends Model
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'foreign_key', 'other_key');
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

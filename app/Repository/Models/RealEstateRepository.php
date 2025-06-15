@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Repository\Models;
+
 use App\Models\RealEstate;
 use App\Models\RealEstate_properties;
 use App\Repository\Repo;
@@ -11,29 +12,34 @@ use Illuminate\http\Requestrequestt;
 use Symfony\Component\HttpFoundation\Response;
 
 
-class RealEstateRepository extends Repo{
+class RealEstateRepository extends Repo
+{
 
     public function __construct(
         private MediaService $mediaService,
-       
+
     ) {
         parent::__construct(RealEstate::class,);
     }
 
-    public function create(array $data) :RealEstate {
+    public function create(array $data): RealEstate
+    {
         return parent::create($data);
     }
 
-    public function update(array $data, int $id):RealEstate {
+    public function update(array $data, int $id): RealEstate
+    {
         $realEstate = parent::findOrFail($id);
         $realEstate->update($data);
         return $realEstate;
     }
-    public function createProperties(RealEstate $realEstate, array $properties): void {
+    public function createProperties(RealEstate $realEstate, array $properties): void
+    {
         $realEstate->properties()->create($properties);
     }
 
-    public function updateProperties(RealEstate $realEstate, array $properties): void {
+    public function updateProperties(RealEstate $realEstate, array $properties): void
+    {
         $realEstate->properties()->updateOrCreate(
             ['real_estate_id' => $realEstate->id],
             $properties
@@ -44,24 +50,22 @@ class RealEstateRepository extends Repo{
     {
         $realEstate = parent::findOrFail($id)->load([
             'properties',
-            'location', 
+            'location',
             'images:id,name,real_estate_id',
             'user:id,name,email,status',
             'user.contact:id,phone_no,username,user_id'
         ]);
-    
         $view = $realEstate->view()->first();
-        
         if ($view) {
             $view->increment('counter');
         } else {
             $realEstate->view()->create(['counter' => 1]);
         }
-    
         return $realEstate;
     }
 
-    public function delete(int $id):bool{
+    public function delete(int $id): bool
+    {
         return parent::delete($id);
     }
 }
