@@ -18,7 +18,7 @@ return new class extends Migration
             $table->float('latitude')->default(0);
             $table->float('longitude')->default(0);
             $table->enum('status', ['closed', 'open'])->default('open')->index();
-            $table->enum('type', ['rental', 'sale'])->default('sale')->index();
+            $table->enum('type', ['rental', 'sale', 'للبيع', 'للأيجار'])->default('sale')->index();
             $table->integer('price')->index();
             $table->enum('hidden', [1, 0])->default(0);
             $table->string('description');

@@ -23,8 +23,6 @@ Route::get('/sanctum/csrf-cookie', function (Request $request) {
     return response()->json(['message' => 'CSRF cookie set']);
 });
 
-
-
 Route::prefix('services/')->group(function () {
     Route::get('index', [ServicesController::class, 'index']);
     Route::get('index/{id}', [ServicesController::class, 'show']);

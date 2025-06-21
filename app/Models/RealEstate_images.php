@@ -18,6 +18,6 @@ class RealEstate_images extends Model
      */
     public function RealEstate(): BelongsTo
     {
-        return $this->belongsTo(RealEstate::class);
+        return $this->belongsTo(RealEstate::class, 'real_estate_id');
     }
 }

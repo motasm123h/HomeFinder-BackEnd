@@ -15,13 +15,20 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class RealEstate extends Model
 {
     protected $fillable = [
-        'latitude', 'longitude', 'status', 'type',
-        'price', 'hidden',
-        'description', 'total_weight', 'kind',
-        'user_id', 'real_estate_location_id'
+        'latitude',
+        'longitude',
+        'status',
+        'type',
+        'price',
+        'hidden',
+        'description',
+        'total_weight',
+        'kind',
+        'user_id',
+        'real_estate_location_id'
     ];
 
-    
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
@@ -29,7 +36,7 @@ class RealEstate extends Model
 
     public function images(): HasMany
     {
-        return $this->hasMany(RealEstate_images::class);
+        return $this->hasMany(RealEstate_images::class, 'real_estate_id');
     }
 
     public function location(): BelongsTo
@@ -46,5 +53,4 @@ class RealEstate extends Model
     {
         return $this->hasMany(RealEstate_View::class, 'real_estate_id');
     }
-
 }

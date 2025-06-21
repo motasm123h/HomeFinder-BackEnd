@@ -9,7 +9,5 @@ class Reviews extends Model
 {
     protected $fillable = ['name','phone','descripition'];
 
-    // public function user(){
-    //     return $this->belongsTo(User::class);
-    // }
+   
 }

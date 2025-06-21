@@ -103,8 +103,8 @@ class RealEstateController extends Controller
 
     public function Add360(Request $request, int $id)
     {
-        $disk = 'public';
-        $path = 'uploads';
+        $disk = 'real_estate';
+        $path = 'real-estate/images';
         foreach ($request->file('images') as $file) {
             $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
             $extension = $file->getClientOriginalExtension();

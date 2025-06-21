@@ -3,13 +3,9 @@
 namespace App\Repository\Models;
 
 use App\Models\RealEstate;
-use App\Models\RealEstate_properties;
+use App\Models\RealEstate_images;
 use App\Repository\Repo;
 use App\Services\MediaService;
-use App\Services\ModelService;
-use Illuminate\Http\Request;
-use Illuminate\http\Requestrequestt;
-use Symfony\Component\HttpFoundation\Response;
 
 
 class RealEstateRepository extends Repo
@@ -48,19 +44,22 @@ class RealEstateRepository extends Repo
 
     public function getDetails(int $id)
     {
-        $realEstate = parent::findOrFail($id)->load([
+
+        $realEstate = RealEstate::findOrFail($id)->load([
             'properties',
             'location',
-            'images:id,name,real_estate_id',
+            'images',
             'user:id,name,email,status',
             'user.contact:id,phone_no,username,user_id'
         ]);
+
         $view = $realEstate->view()->first();
         if ($view) {
             $view->increment('counter');
         } else {
             $realEstate->view()->create(['counter' => 1]);
         }
+
         return $realEstate;
     }
 
