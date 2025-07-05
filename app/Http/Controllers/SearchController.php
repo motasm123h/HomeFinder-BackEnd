@@ -80,7 +80,7 @@ class SearchController extends Controller
         return $this->apiResponse(
             'Preference-based real estates retrieved successfully',
             [
-                'matches' => $results, // Direct collection of results
+                'matches' => $results, 
                 'searchInput' => $validated,
                 'effectiveMinSimilarity' => $minSimilarity,
                 'effectiveStrictMatchThreshold' => $strictMatchThreshold,

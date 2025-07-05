@@ -43,6 +43,7 @@ Route::prefix('RealEstate/')->group(function () {
     Route::post('index', [RealEstateController::class, 'index']);
     Route::get('getLocation', [RealEstateController::class, 'getLocation']);
     Route::get('getDetails/{id}', [RealEstateController::class, 'getDetails']);
+    Route::post('compare', [RealEstateController::class, 'compare']);
 });
 
 Route::prefix('complaint/')->group(function () {

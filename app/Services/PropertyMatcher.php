@@ -19,6 +19,7 @@ class PropertyMatcher
         $this->flexibleFields = config('properties.flexible_fields', []);
     }
 
+`
     public function findMatches(
         array $userInput,
         int $limit = 10,
@@ -35,46 +36,40 @@ class PropertyMatcher
         $matchCountBindings = [];
 
         $totalPossibleScore = 0;
-        $activeInputCount = 0;
 
         foreach ($userInput as $key => $value) {
-            if (empty($value) || !isset($this->weights[$key])) {
+            if (!isset($value) || $value === '' || !isset($this->weights[$key])) {
                 continue;
             }
 
             $weight = $this->weights[$key];
             $totalPossibleScore += $weight;
-            $activeInputCount++;
 
-            $column = '';
-            if (in_array($key, $this->realEstateTableColumns)) {
-                $column = "real_estates.{$key}";
-            } else {
-                $column = "IFNULL(real_estate_properties.{$key}, 0)";
-            }
+            $column = in_array($key, $this->realEstateTableColumns)
+                ? "real_estates.{$key}"
+                : "real_estate_properties.{$key}";
 
+            $nullCheck = in_array($key, $this->realEstateTableColumns)
+                ? "" // No null check for main table columns
+                : "{$column} IS NOT NULL AND";
 
             if (isset($this->flexibleFields[$key]) && is_numeric($value)) {
                 $range = $this->flexibleFields[$key]['range'];
                 $weightReductionFactor = $this->flexibleFields[$key]['weight_reduction_factor'];
 
                 $scoreCalculations[] = "
-                    (CASE
-                        WHEN ABS({$column} - ?) <= ?
-                        THEN {$weight} * (1 - (ABS({$column} - ?) / ?)) * (1 - {$weightReductionFactor})
-                        ELSE 0
-                    END)
-                ";
-                $scoreBindings = array_merge($scoreBindings, [$value, $range, $value, $range]);
+                    (CASE WHEN {$nullCheck} ABS({$column} - ?) <= ?
+                          THEN ? * (1 - (ABS({$column} - ?) / ?)) * (1 - ?)
+                          ELSE 0 END)";
+                $scoreBindings = array_merge($scoreBindings, [$value, $range, $weight, $value, $range, $weightReductionFactor]);
 
-                $matchCountCalculations[] = "(CASE WHEN ABS({$column} - ?) <= ? THEN 1 ELSE 0 END)";
+                $matchCountCalculations[] = "(CASE WHEN {$nullCheck} ABS({$column} - ?) <= ? THEN 1 ELSE 0 END)";
                 $matchCountBindings = array_merge($matchCountBindings, [$value, $range]);
             } else {
-                // For exact matches (including 'type')
-                $scoreCalculations[] = "(CASE WHEN {$column} = ? THEN {$weight} ELSE 0 END)";
-                $scoreBindings[] = $value;
+                $scoreCalculations[] = "(CASE WHEN {$nullCheck} {$column} = ? THEN ? ELSE 0 END)";
+                $scoreBindings = array_merge($scoreBindings, [$value, $weight]);
 
-                $matchCountCalculations[] = "(CASE WHEN {$column} = ? THEN 1 ELSE 0 END)";
+                $matchCountCalculations[] = "(CASE WHEN {$nullCheck} {$column} = ? THEN 1 ELSE 0 END)";
                 $matchCountBindings[] = $value;
             }
         }
@@ -86,14 +81,16 @@ class PropertyMatcher
         $query->leftJoin('real_estate_properties', 'real_estates.id', '=', 'real_estate_properties.real_estate_id');
 
         $scoreRaw = implode(' + ', $scoreCalculations);
+        $matchCountRaw = implode(' + ', $matchCountCalculations);
         $similarityRaw = "ROUND((({$scoreRaw}) / {$totalPossibleScore}) * 100, 2)";
 
-        $matchCountRaw = implode(' + ', $matchCountCalculations);
-
-        $allBindings = array_merge(
+        // *** THE CRITICAL FIX IS HERE ***
+        // We must supply bindings for every placeholder in the final select string.
+        // The order is: 1. score's placeholders, 2. match_count's, 3. similarity's (which is a repeat of score's).
+        $allSelectBindings = array_merge(
             $scoreBindings,
             $matchCountBindings,
-            $scoreBindings
+            $scoreBindings // This duplication is necessary because $scoreRaw is used twice
         );
 
         try {
@@ -102,22 +99,24 @@ class PropertyMatcher
                 ({$scoreRaw}) AS score,
                 ({$matchCountRaw}) AS match_count,
                 {$similarityRaw} AS similarity",
-                $allBindings
+                $allSelectBindings
             );
 
+            // The having clause bindings are handled separately and correctly by Laravel.
             $query->having('similarity', '>=', $minSimilarity);
 
             if ($strictMatchThreshold > 0) {
                 $query->having('match_count', '>=', $strictMatchThreshold);
             }
 
-            $query->orderByDesc('match_count')
-                ->orderByDesc('score');
+            $query->orderByDesc('score')
+                ->orderByDesc('match_count');
 
             $query->groupBy('real_estates.id');
 
             $results = $query->limit($limit)->get();
 
+            // The transformation logic seems fine, no changes needed here
             $results->transform(function ($realEstate) use ($userInput) {
                 return [
                     'realEstate' => $realEstate,
@@ -130,7 +129,12 @@ class PropertyMatcher
 
             return $results;
         } catch (\Exception $e) {
-            Log::error('PropertyMatcher Error:', ['message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine(), 'user_input' => $userInput]);
+            Log::error('PropertyMatcher Error:', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'user_input' => $userInput,
+            ]);
             throw $e;
         }
     }
