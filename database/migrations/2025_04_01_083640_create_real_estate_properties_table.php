@@ -21,7 +21,7 @@ return new class extends Migration
             $table->enum('solar_energy', ['1', '2']);
             $table->enum('garage', ['1', '2']);
             $table->integer('room_no');
-            $table->enum('direction', ['1', '2', '3']);
+            $table->enum('direction', ['1', '2', '3', '4']);
             $table->integer('space_status');
             $table->enum('elevator', ['1', '2']);
             $table->integer('floor');

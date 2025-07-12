@@ -57,9 +57,10 @@ class RealEstateController extends Controller
     ];
 
     private const DIRECTION_MAP = [
-        '1' => 'Favorable (e.g., North/South)',
-        '2' => 'Neutral (e.g., East/West)',
-        '3' => 'Less Favorable',
+        '1' => 'One Direction',
+        '2' => 'Two Direction',
+        '3' => 'Three Direction',
+        '4' => 'Four Direction',
     ];
 
     private const ATTIRED_MAP = [
@@ -664,15 +665,15 @@ class RealEstateController extends Controller
             );
         }
 
-        $desiredStatus = $preferences['desired_status'] ?? null;
-        $breakdown['status'] = $this->compareEnumFieldWithPreference(
-            'Status',
-            $realEstate1->status,
-            $realEstate2->status,
-            self::STATUS_MAP,
-            ['open' => 2, 'closed' => 1],
-            $desiredStatus
-        );
+        // $desiredStatus = $preferences['desired_status'] ?? null;
+        // $breakdown['status'] = $this->compareEnumFieldWithPreference(
+        //     'Status',
+        //     $realEstate1->status,
+        //     $realEstate2->status,
+        //     self::STATUS_MAP,
+        //     ['open' => 2, 'closed' => 1],
+        //     $desiredStatus
+        // );
 
         $desiredType = $preferences['desired_type'] ?? null;
         $breakdown['type'] = $this->compareEnumFieldWithPreference(
@@ -684,13 +685,13 @@ class RealEstateController extends Controller
             $desiredType
         );
 
-        $breakdown['hidden'] = $this->compareBooleanField(
-            'Visibility',
-            $realEstate1->hidden == 0,
-            $realEstate2->hidden == 0,
-            'Visible',
-            'Hidden'
-        );
+        // $breakdown['hidden'] = $this->compareBooleanField(
+        //     'Visibility',
+        //     $realEstate1->hidden == 0,
+        //     $realEstate2->hidden == 0,
+        //     'Visible',
+        //     'Hidden'
+        // );
 
         $desiredKind = $preferences['desired_kind'] ?? null;
         $breakdown['kind'] = $this->compareEnumFieldWithPreference(
@@ -981,7 +982,7 @@ class RealEstateController extends Controller
             'value_2' => $val2 ? 'Yes' : 'No',
             'winner' => $winner,
             'description' => $description,
-            'user_preference' => 'N/A (No specific user preference for this field)',
+            'user_desired_value' => 'N/A (No specific user preference for this field)',
         ];
     }
 
@@ -1094,7 +1095,6 @@ class RealEstateController extends Controller
                 $winner = 'Tie';
                 $description = "Both RealEstate 1 and 2 match your desired '{$displayMap[$userDesiredValue]}' {$title}.";
             } else {
-                // Neither matches preference, fall back to default priority comparison
                 $p1 = $priorityMap[$normalizedEnumVal1] ?? 0;
                 $p2 = $priorityMap[$normalizedEnumVal2] ?? 0;
                 $winner = ($p1 > $p2) ? 'RealEstate 1' : (($p2 > $p1) ? 'RealEstate 2' : 'Tie');

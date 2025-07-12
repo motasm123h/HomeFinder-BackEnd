@@ -19,7 +19,6 @@ class PropertyMatcher
         $this->flexibleFields = config('properties.flexible_fields', []);
     }
 
-`
     public function findMatches(
         array $userInput,
         int $limit = 10,

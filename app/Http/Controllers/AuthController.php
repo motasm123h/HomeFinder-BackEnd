@@ -33,6 +33,7 @@ class AuthController extends Controller
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
+                'password' => $validated['role'],
             ]);
 
             $user->address()->create([

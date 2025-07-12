@@ -22,14 +22,14 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' =>['required'],
-            'email' =>['required'],
-            'password' =>['required'],
-            'city' =>['required'],
-            'district' =>['required'],
-            'phone_no' =>['required'],
-            'username' =>['required'],
-            'role' => 'sometimes|string',
+            'name' => ['required'],
+            'email' => ['required'],
+            'password' => ['required'],
+            'city' => ['required'],
+            'district' => ['required'],
+            'phone_no' => ['required'],
+            'username' => ['required'],
+            'role' => 'string',
         ];
     }
 }

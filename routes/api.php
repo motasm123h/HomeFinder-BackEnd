@@ -59,12 +59,15 @@ Route::get('/admin/users', [AdminController::class, 'index']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
 
+    
+
+
+
     Route::get('getNotifications', [NotiController::class, 'getNotifications']);
     Route::get('deleteNotification/{id}', [NotiController::class, 'deleteNotification']);
 
 
     Route::middleware(['activate'])->group(function () {
-
         Route::prefix('RealEstate/')->group(function () {
             Route::post('create', [RealEstateController::class, 'create']);
             Route::post('update/{id}', [RealEstateController::class, 'update']);
@@ -90,11 +93,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 
     Route::middleware(['admin'])->group(function () {
+
         Route::prefix('complaint/')->group(function () {
             Route::get('index', [CommonController::class, 'index']);
             Route::post('delete/{id}', [CommonController::class, 'delete']);
         });
         Route::prefix('admin/')->group(function () {
+            Route::post('delete/{id}', [RealEstateController::class, 'delete']);
             Route::post('activate/{id}', [AdminController::class, 'setActivation']);
             Route::post('delete/{id}', [AdminController::class, 'delete']);
 
