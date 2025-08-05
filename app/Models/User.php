@@ -4,13 +4,16 @@ namespace App\Models;
 
 use App\Models\Address;
 use App\Models\Contact;
+use App\Models\CustomerPreferences;
 use App\Models\RealEstate;
 use App\Models\RealEstate_Request;
+use App\Models\Reviews;
 use App\Models\Search_Log;
 use App\Models\Services;
 use App\Models\Verification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -44,6 +47,12 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    public function customerPreference(): HasOne
+    {
+        return $this->hasOne(CustomerPreferences::class);
+    }
+
+
     /**
      * Get the attributes that should be cast.
      *
@@ -60,6 +69,11 @@ class User extends Authenticatable
     public function contact()
     {
         return $this->hasMany(Contact::class, 'user_id');
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Reviews::class, 'user_id');
     }
 
     public function address()

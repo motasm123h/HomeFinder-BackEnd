@@ -24,7 +24,9 @@ class CustomerPreferenceController extends Controller
 
     public function store(StoreCustomerPreferenceRequest $request): JsonResponse
     {
-        $preference = CustomerPreferences::create($request->validated());
+        $data = $request->validated();
+        $data['user_id'] = auth()->user()->id;
+        $preference = CustomerPreferences::create($data);
 
         return response()->json([
             'message' => 'Customer preference created successfully.',

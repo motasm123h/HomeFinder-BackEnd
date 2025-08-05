@@ -3,14 +3,18 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CommonController;
+use App\Http\Controllers\CustomerPreferenceController;
 use App\Http\Controllers\NotiController;
 use App\Http\Controllers\OfficeController;
 use App\Http\Controllers\RealEstateController;
+use App\Http\Controllers\RecommendationController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ServicesController;
 use App\Http\Controllers\VerificationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+
 
 
 
@@ -59,9 +63,15 @@ Route::get('/admin/users', [AdminController::class, 'index']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
 
-    
 
 
+    Route::get('/customer-preferences', [CustomerPreferenceController::class, 'index']);
+    Route::post('/customer-preferences', [CustomerPreferenceController::class, 'store']);
+    Route::get('/customer-preferences/{customerPreference}', [CustomerPreferenceController::class, 'show']);
+    Route::post('/customer-preferences/{customerPreference}', [CustomerPreferenceController::class, 'update']);
+    Route::post('/customer-preferences/delete/{customerPreference}', [CustomerPreferenceController::class, 'destroy']);
+
+    Route::get('/recommendations', [RecommendationController::class, 'getRecommendations']);
 
     Route::get('getNotifications', [NotiController::class, 'getNotifications']);
     Route::get('deleteNotification/{id}', [NotiController::class, 'deleteNotification']);
@@ -95,8 +105,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::middleware(['admin'])->group(function () {
 
         Route::prefix('complaint/')->group(function () {
+            
             Route::get('index', [CommonController::class, 'index']);
+            Route::get('getReviewsByOffice/{id}', [CommonController::class, 'getReviewsByOffice']);
             Route::post('delete/{id}', [CommonController::class, 'delete']);
+            Route::post('seen/{id}', [CommonController::class, 'seen']);
         });
         Route::prefix('admin/')->group(function () {
             Route::post('delete/{id}', [RealEstateController::class, 'delete']);

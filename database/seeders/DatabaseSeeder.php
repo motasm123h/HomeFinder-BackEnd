@@ -28,7 +28,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             DamascusLocationsSeeder::class,
             ServicesTypeSeeder::class,
-            // RealEstateWithPropertiesSeeder::class,
+            RealEstateWithPropertiesSeeder::class,
         ]);
     }
 }

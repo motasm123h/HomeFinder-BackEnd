@@ -14,9 +14,12 @@ return new class extends Migration
     {
         Schema::create('reviews', function (Blueprint $table) {
             $table->id();
+            $table->foreignIdFor(User::class)->constrained()->onDelete('cascade');
             $table->string('name');
             $table->string('phone');
             $table->string('descripition');
+            $table->enum('seen', ['yes', 'no'])->default('no');
+
             $table->timestamps();
         });
     }

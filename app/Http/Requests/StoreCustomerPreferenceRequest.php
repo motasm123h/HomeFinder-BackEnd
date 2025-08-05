@@ -31,7 +31,6 @@ class StoreCustomerPreferenceRequest extends FormRequest
             'attired' => ['required', 'in:1,2,3'],
             'ownership_type' => ['required', 'in:Green,Court'],
             'price' => ['required', 'in:1,2,3'],
-            'total_weight' => ['required', 'integer', 'min:0'],
         ];
     }
 }

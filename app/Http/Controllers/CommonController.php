@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Reviews;
+use App\Models\User;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
 
@@ -17,6 +18,7 @@ class CommonController extends Controller
             'name' => ['required'],
             'phone' => ['required'],
             'descripition' => ['required'],
+            'user_id' => ['required'],
         ]);
 
         $com = Reviews::create($atter);
@@ -25,6 +27,21 @@ class CommonController extends Controller
             $com,
             201
         );
+    }
+
+    public function seen(int $review_id)
+    {
+        $review = Reviews::where('id', $review_id)->first()->update(['seen' => 'yes']);
+        return response()->json([
+            'data' => $review,
+        ]);
+    }
+    public function getReviewsByOffice(int $user_id)
+    {
+        $reviews = User::where('id', $user_id)->first()->with('reviews')->get();
+        return response()->json([
+            'data' => $reviews,
+        ]);
     }
 
     public function index()
