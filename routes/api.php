@@ -74,7 +74,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/recommendations', [RecommendationController::class, 'getRecommendations']);
 
     Route::get('getNotifications', [NotiController::class, 'getNotifications']);
-    Route::get('deleteNotification/{id}', [NotiController::class, 'deleteNotification']);
+    Route::post('deleteNotification/{id}', [NotiController::class, 'deleteNotification']);
 
 
     Route::middleware(['activate'])->group(function () {
@@ -105,7 +105,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::middleware(['admin'])->group(function () {
 
         Route::prefix('complaint/')->group(function () {
-            
             Route::get('index', [CommonController::class, 'index']);
             Route::get('getReviewsByOffice/{id}', [CommonController::class, 'getReviewsByOffice']);
             Route::post('delete/{id}', [CommonController::class, 'delete']);

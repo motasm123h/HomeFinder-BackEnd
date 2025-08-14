@@ -99,7 +99,7 @@ class VerificationController extends Controller
 
     public function destroy($id)
     {
-        $verification = Verification::findOrFail($id); // ModelNotFoundException handled by Handler
+        $verification = Verification::findOrFail($id);
 
         if ($verification->identity_image) {
             Storage::disk('public')->delete($verification->identity_image);

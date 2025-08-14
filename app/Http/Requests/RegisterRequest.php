@@ -29,7 +29,7 @@ class RegisterRequest extends FormRequest
             'district' => ['required'],
             'phone_no' => ['required'],
             'username' => ['required'],
-            'role' => 'string',
+            'role' => ['required'],
         ];
     }
 }

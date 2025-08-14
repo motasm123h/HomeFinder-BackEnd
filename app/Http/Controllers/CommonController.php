@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Reviews;
 use App\Models\User;
+use App\Notifications\Newcomplaint;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 
 class CommonController extends Controller
 {
@@ -22,6 +24,12 @@ class CommonController extends Controller
         ]);
 
         $com = Reviews::create($atter);
+
+        $users = User::where('role', '1')->get();
+
+        foreach ($users as $user) {
+            $user->notify(new Newcomplaint($com));
+        }
         return $this->apiResponse(
             'Data created successfully',
             $com,
@@ -38,9 +46,9 @@ class CommonController extends Controller
     }
     public function getReviewsByOffice(int $user_id)
     {
-        $reviews = User::where('id', $user_id)->first()->with('reviews')->get();
+        $reviews = User::where('id', $user_id)->first();
         return response()->json([
-            'data' => $reviews,
+            'data' => $reviews->load('reviews'),
         ]);
     }
 

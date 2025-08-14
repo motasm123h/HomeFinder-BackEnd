@@ -21,18 +21,7 @@ class VerificationNotification extends Notification
 
     public function via($notifiable)
     {
-        return ['database', 'mail'];
-    }
-
-    public function toMail($notifiable)
-    {
-        return (new MailMessage)
-                    ->subject('Your Account Has Been Verified')
-                    ->line('Congratulations! Your account verification has been completed successfully.')
-                    ->line('Verification details:')
-                    ->line('National Number: ' . $this->verification->national_no)
-                    ->action('View Your Account', url('/profile'))
-                    ->line('Thank you for using our service!');
+        return ['database'];
     }
 
     public function toArray($notifiable)
