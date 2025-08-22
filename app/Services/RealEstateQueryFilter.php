@@ -13,7 +13,6 @@ class RealEstateQueryFilter
     public function apply(Builder $query, array $filters): Builder
     {
         $this->logSearchFilters($filters);
-        
         return $query
             ->when($filters['type'] ?? null, function($q, $type) {
                 return $q->where('type', $type);
@@ -31,8 +30,6 @@ class RealEstateQueryFilter
 
     protected function logSearchFilters(array $filters): void
     {
-        // $userId = Auth::id();
-        
         foreach ($this->getLoggableFilters($filters) as $key => $value) {
             Search_Log::create([
                 'key' => $key,

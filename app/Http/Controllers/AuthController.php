@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\ApiException;
+use App\Helper\ProfileHelper;
+use App\Helper\RealEstateHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
-use App\Models\Address;
-use App\Models\Contact;
+use App\Http\Requests\UpdateRequest;
 use App\Models\User;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
@@ -14,11 +16,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator; // Needed for resetPassword inline validation
-use App\Helper\ProfileHelper;
-use App\Helper\RealEstateHelper;
-use App\Exceptions\ApiException; // Import your custom exception
-use Illuminate\Database\Eloquent\ModelNotFoundException; // To explicitly throw for not found scenarios
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -131,6 +130,35 @@ class AuthController extends Controller
             ]
         ]);
     }
+
+    public function update(UpdateRequest $request, User $user)
+    {
+        return DB::transaction(function () use ($request, $user) {
+            $validated = $request->validated();
+            $user->update([
+                'name' => $validated['name'] ?? $user->name,
+                'email' => $validated['email'] ?? $user->email,
+                'password' => isset($validated['password']) ? Hash::make($validated['password']) : $user->password,
+            ]);
+
+            $user->address()->update([
+                'city' => $validated['city'] ?? $user->address->city,
+                'district' => $validated['district'] ?? $user->address->district,
+            ]);
+
+            $user->contact()->update([
+                'phone_no' => $validated['phone_no'] ?? $user->contact->phone_no,
+                // 'username' => $validated['username'] ?? $user->contact->username,
+            ]);
+
+            return $this->apiResponse(
+                'User updated successfully',
+                $user,
+                200
+            );
+        });
+    }
+
 
     private function buildPaginationMeta($paginator)
     {

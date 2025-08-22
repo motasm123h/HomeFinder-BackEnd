@@ -62,6 +62,7 @@ Route::get('profile/{id}', [AuthController::class, 'profile']);
 Route::get('/admin/users', [AdminController::class, 'index']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
+    Route::post('/users/{user}', [AuthController::class, 'update']);
 
 
 
@@ -100,7 +101,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 
     Route::get('/', [ServicesController::class, 'index']);
-
 
     Route::middleware(['admin'])->group(function () {
 

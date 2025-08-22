@@ -16,30 +16,29 @@ class ServicesTypeSeeder extends Seeder
      */
     public function run()
     {
-        // Sample service types
         $serviceTypes = [
-            ['type' => 'Cleaning'],
-            ['type' => 'Maintenance'],
-            ['type' => 'Moving'],
-            ['type' => 'Landscaping'],
-            ['type' => 'Personal Assistance'],
-            ['type' => 'IT Support'],
-            ['type' => 'Tutoring'],
-            ['type' => 'Pet Care'],
-            ['type' => 'Event Planning'],
-            ['type' => 'Health & Wellness'],
+            ['type' => 'أعمال الإكساء والتشطيب'],
+            ['type' => 'صيانة عامة'],
+            ['type' => 'خدمات التنظيف'],
+            ['type' => 'نقل وتخزين الأثاث'],
+            ['type' => 'تنسيق الحدائق'],
+            ['type' => 'صيانة الأنظمة الكهربائية'],
+            ['type' => 'خدمات السباكة'],
+            ['type' => 'تركيب وتصليح التكييف'],
+            ['type' => 'مكافحة الحشرات'],
+            ['type' => 'استشارات هندسية'],
+            ['type' => 'تقييم عقاري'],
         ];
 
         foreach ($serviceTypes as $type) {
             Services_Type::create($type);
         }
 
-        $this->createSampleServices();
+        // $this->createSampleServices();
     }
 
     protected function createSampleServices()
     {
-        // Get or create a sample user
         $user = User::firstOrCreate(
             ['email' => 'test@example.com'],
             [
@@ -48,10 +47,8 @@ class ServicesTypeSeeder extends Seeder
             ]
         );
 
-        // Get all service types
         $serviceTypes = Services_Type::all();
 
-        // Sample services data
         $services = [
             [
                 'title' => 'House Cleaning',

@@ -14,20 +14,20 @@ class RealEstateWithPropertiesSeeder extends Seeder
 {
     public function run()
     {
-        $user = User::firstOrCreate(
-            ['email' => 'test@example.com'],
-            [
-                'name' => 'Test User',
-                'password' => bcrypt('password')
-            ]
-        );
+        // $user = User::firstOrCreate(
+        //     ['email' => 'test@example.com'],
+        //     [
+        //         'name' => 'Test User',
+        //         'password' => bcrypt('password')
+        //     ]
+        // );
 
-        $location = RealEstate_Location::firstOrCreate(
-            [
-                'city' => 'Metropolis',
-                'district' => 'United States',
-            ]
-        );
+        // $location = RealEstate_Location::firstOrCreate(
+        //     [
+        //         'city' => 'Metropolis',
+        //         'district' => 'United States',
+        //     ]
+        // );
 
         // Create storage directory if it doesn't exist
         if (!Storage::exists('public/real-estate-images')) {
