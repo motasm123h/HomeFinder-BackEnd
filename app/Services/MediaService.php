@@ -3,6 +3,7 @@ namespace App\services;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class MediaService{
@@ -31,6 +32,9 @@ class MediaService{
                 'name' => $filePath,
             ]);
         }
+
+        $syncFiles = shell_exec('rsync -av --delete /home/bookus/repositories/mot/public/storage /home/bookus/public_html/mot.4bookus.com/');
+        Log::info($syncFiles);
     }
 
 
