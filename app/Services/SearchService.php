@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Services;
 
 use App\Models\{RealEstate, Search_Log};
@@ -6,25 +7,38 @@ use Illuminate\Support\Facades\DB;
 
 class SearchService
 {
-    
+
     public function getMostSearchedRealEstates(int $limit = 5)
     {
-        $topSearches = Search_Log::select(
-            'key',
-            'value',
-            DB::raw('COUNT(*) as search_weight'),
-            DB::raw('CASE
+        // Get the current database connection name
+        $driver = DB::connection()->getDriverName();
+
+        $topSearches = Search_Log::select('key', 'value', DB::raw('COUNT(*) as search_weight'))
+            ->groupBy('key', 'value')
+            ->orderByDesc('search_weight')
+            ->limit($limit);
+
+        // Add the database-specific CASE statement
+        if ($driver === 'sqlite') {
+            $topSearches->selectRaw('CASE
+                WHEN `key` = "price_range" THEN "range"
+                WHEN `key` IN ("price", "min_price", "max_price") AND CAST(value AS UNSIGNED) = value THEN "numeric"
+                ELSE "string"
+            END as value_type');
+        } else {
+            // This includes MySQL and other drivers that support REGEXP
+            $topSearches->selectRaw('CASE
                 WHEN `key` = "price_range" THEN "range"
                 WHEN `key` IN ("price", "min_price", "max_price") AND `value` REGEXP "^[0-9]+$" THEN "numeric"
                 ELSE "string"
-            END as value_type')
-        )
-        ->groupBy('key', 'value')
-        ->orderByDesc('search_weight')
-        ->limit($limit)
-        ->get();
+            END as value_type');
+        }
+
+        $topSearches = $topSearches->get();
+
         return $topSearches;
 
+        // The rest of your code remains the same
         return RealEstate::where(function ($query) use ($topSearches) {
             foreach ($topSearches as $search) {
                 $query->orWhere(function ($subQuery) use ($search) {
@@ -39,12 +53,10 @@ class SearchService
                             break;
 
                         case 'numeric':
-                            // Assume numeric search is on main RealEstate
                             $subQuery->where($key, (float)$value);
                             break;
 
                         default:
-                            // Handle strings
                             switch ($key) {
                                 case 'kind':
                                 case 'type':
@@ -55,7 +67,6 @@ class SearchService
                                 case 'room_no':
                                 case 'floor':
                                 case 'ownership_type':
-                                    // In RealEstate_properties
                                     $subQuery->whereHas('properties', function ($q) use ($key, $value) {
                                         $q->where($key, 'like', "%{$value}%");
                                     });
@@ -63,15 +74,13 @@ class SearchService
 
                                 case 'location':
                                 case 'district':
-                                    // In RealEstate_Location
                                     $subQuery->whereHas('location', function ($q) use ($value) {
                                         $q->where('district', 'like', "%{$value}%")
-                                        ->orWhere('city', 'like', "%{$value}%");
+                                            ->orWhere('city', 'like', "%{$value}%");
                                     });
                                     break;
 
                                 default:
-                                    // fallback to description
                                     $subQuery->where('description', 'like', "%{$value}%");
                                     break;
                             }
@@ -80,21 +89,20 @@ class SearchService
                 });
             }
         })
-        ->with(['location', 'images', 'properties'])
-        ->get();
+            ->with(['location', 'images', 'properties'])
+            ->get();
     }
-
 
     public function getMostWatchedRealEstates(int $limit = 10)
     {
         return RealEstate::whereHas('view')
-        ->with(['location', 'images'])
-        ->withCount(['view as counter_sum' => function($query) {
-            $query->select(DB::raw('SUM(counter)'));
-        }])
-        ->orderByDesc('counter_sum')
-        ->limit($limit)
-        ->paginate(10);
+            ->with(['location', 'images'])
+            ->withCount(['view as counter_sum' => function ($query) {
+                $query->select(DB::raw('SUM(counter)'));
+            }])
+            ->orderByDesc('counter_sum')
+            ->limit($limit)
+            ->paginate(10);
     }
 
     public function logSearch(string $key, int $value = 1, User $user = null)
