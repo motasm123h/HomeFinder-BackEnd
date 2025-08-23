@@ -77,20 +77,20 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('getNotifications', [NotiController::class, 'getNotifications']);
     Route::post('deleteNotification/{id}', [NotiController::class, 'deleteNotification']);
 
-    Route::prefix('RealEstate/')->group(function () {
-        Route::post('create', [RealEstateController::class, 'create']);
-        Route::post('update/{id}', [RealEstateController::class, 'update']);
-        Route::post('delete/{id}', [RealEstateController::class, 'delete']);
-        Route::post('Add360/{id}', [RealEstateController::class, 'Add360']);
-    });
+    // Route::prefix('RealEstate/')->group(function () {
+    //     Route::post('create', [RealEstateController::class, 'create']);
+    //     Route::post('update/{id}', [RealEstateController::class, 'update']);
+    //     Route::post('delete/{id}', [RealEstateController::class, 'delete']);
+    //     Route::post('Add360/{id}', [RealEstateController::class, 'Add360']);
+    // });
 
     Route::middleware(['activate'])->group(function () {
-        // Route::prefix('RealEstate/')->group(function () {
-        //     Route::post('create', [RealEstateController::class, 'create']);
-        //     Route::post('update/{id}', [RealEstateController::class, 'update']);
-        //     Route::post('delete/{id}', [RealEstateController::class, 'delete']);
-        //     Route::post('Add360/{id}', [RealEstateController::class, 'Add360']);
-        // });
+        Route::prefix('RealEstate/')->group(function () {
+            Route::post('create', [RealEstateController::class, 'create']);
+            Route::post('update/{id}', [RealEstateController::class, 'update']);
+            Route::post('delete/{id}', [RealEstateController::class, 'delete']);
+            Route::post('Add360/{id}', [RealEstateController::class, 'Add360']);
+        });
         Route::prefix('services/')->group(function () {
             Route::post('create', [ServicesController::class, 'create']);
             Route::post('update/{id}', [ServicesController::class, 'update']);
