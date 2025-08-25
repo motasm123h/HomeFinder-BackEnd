@@ -46,7 +46,7 @@ trait ApiHandler
             'success' => false,
             'message' => $message,
             'error_code' => $errorCode,
-            'data' => $data
+            'data' => $data,
         ], $code);
     }
 }

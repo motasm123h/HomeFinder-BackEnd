@@ -2,11 +2,9 @@
 
 namespace App\Notifications;
 
+use App\Models\Reviews;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Notification;
-use App\Models\Reviews; // Assuming your model is named Reviews
+use Illuminate\Notifications\Notification; // Assuming your model is named Reviews
 
 class Newcomplaint extends Notification
 {
@@ -29,7 +27,6 @@ class Newcomplaint extends Notification
     {
         return ['database'];
     }
-
 
     /**
      * Get the array representation of the notification.

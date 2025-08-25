@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\DTOs\RealEstate\CreateRealEstateDto;
 use App\DTOs\RealEstate\UpdateRealEstateDto;
+use App\Exceptions\ApiException;
 use App\Helper\RealEstateHelper;
-use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreRealEstateRequest;
 use App\Http\Requests\updateRealEstateRequest;
 use App\Models\RealEstate;
@@ -18,7 +18,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use App\Exceptions\ApiException;
 
 class RealEstateController extends Controller
 {
@@ -74,8 +73,6 @@ class RealEstateController extends Controller
         'court' => 'Court Ownership',
     ];
 
-
-
     public function __construct(private ModelService $service) {}
 
     public function index(Request $request)
@@ -87,13 +84,13 @@ class RealEstateController extends Controller
             (new RealEstateQueryFilter)->apply($query, $request->all());
         } else {
 
-            if (!$query->exists() && !$request->anyFilled(['type', 'kind', 'max_price', 'location'])) {
+            if (! $query->exists() && ! $request->anyFilled(['type', 'kind', 'max_price', 'location'])) {
                 $query->inRandomOrder()->limit(12);
             }
         }
 
         $realEstates = $query->paginate($request->input('per_page', 12))
-            ->through(fn($item) => RealEstateHelper::formatRealEstate($item));
+            ->through(fn ($item) => RealEstateHelper::formatRealEstate($item));
 
         return $this->apiResponse(
             'Real estates retrieved successfully',
@@ -120,6 +117,7 @@ class RealEstateController extends Controller
     public function getLocation(): JsonResponse
     {
         $data = RealEstate_Location::all();
+
         return $this->apiResponse(
             'Real estates location successfully',
             $data,
@@ -133,8 +131,8 @@ class RealEstateController extends Controller
             'has_files' => $request->hasFile('images'),
             'file_count' => $request->hasFile('images') ? count($request->file('images')) : 0,
             'file_names' => $request->hasFile('images')
-                ? array_map(fn($file) => $file->getClientOriginalName(), $request->file('images'))
-                : []
+                ? array_map(fn ($file) => $file->getClientOriginalName(), $request->file('images'))
+                : [],
         ]);
 
         $dto = new CreateRealEstateDto(
@@ -157,6 +155,13 @@ class RealEstateController extends Controller
     {
         $disk = 'real_estate';
         $path = 'real-estate/images';
+        if (! $request->hasFile('images')) {
+            return $this->apiResponse(
+                'images is required',
+                null,
+                422
+            );
+        }
         foreach ($request->file('images') as $file) {
             $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
             $extension = $file->getClientOriginalExtension();
@@ -173,6 +178,9 @@ class RealEstateController extends Controller
                 'real_estate_id' => $id,
             ]);
         }
+        $syncFiles = shell_exec('rsync -av --delete /home/bookus/repositories/mot/public/storage /home/bookus/public_html/mot.4bookus.com/');
+        Log::info($syncFiles, ['message' => 'from media service']);
+
         return $this->apiResponse(
             '360 images added successfully',
             null,
@@ -202,8 +210,8 @@ class RealEstateController extends Controller
     {
         $result = $this->service->deleteRealEstate($id);
 
-        if (!$result) {
-            throw new ApiException("Failed to delete real estate or real estate not found", 404);
+        if (! $result) {
+            throw new ApiException('Failed to delete real estate or real estate not found', 404);
         }
 
         return $this->apiResponse(
@@ -217,7 +225,7 @@ class RealEstateController extends Controller
     {
         $details = $this->service->getDetails($id);
 
-        if (!$details) {
+        if (! $details) {
             throw new \Illuminate\Database\Eloquent\ModelNotFoundException("Real estate with ID {$id} not found.");
         }
 
@@ -239,7 +247,7 @@ class RealEstateController extends Controller
             'description',
             'kind',
             'user_id',
-            'real_estate_location_id'
+            'real_estate_location_id',
         ];
     }
 
@@ -260,10 +268,9 @@ class RealEstateController extends Controller
             'garden_status',
             'attired',
             'ownership_type',
-            'real_estate_id'
+            'real_estate_id',
         ];
     }
-
 
     public function compare(Request $request): JsonResponse
     {
@@ -295,14 +302,13 @@ class RealEstateController extends Controller
             }
         }
 
-
         $id1 = $request->input('real_estate_id_1');
         $id2 = $request->input('real_estate_id_2');
         $preferences = $request->input('preferences', []);
         $realEstate1 = RealEstate::with('properties', 'location')->find($id1);
         $realEstate2 = RealEstate::with('properties', 'location')->find($id2);
 
-        if (!$realEstate1 || !$realEstate2) {
+        if (! $realEstate1 || ! $realEstate2) {
             return response()->json(['message' => 'One or both RealEstate IDs not found.'], 404);
         }
 
@@ -321,7 +327,7 @@ class RealEstateController extends Controller
                 'total_score' => $score2,
             ],
             'comparison_breakdown' => $comparisonResult,
-            'overall_winner' => $score1 > $score2 ? 'RealEstate ' . $id1 : ($score2 > $score1 ? 'RealEstate ' . $id2 : 'Tie'),
+            'overall_winner' => $score1 > $score2 ? 'RealEstate '.$id1 : ($score2 > $score1 ? 'RealEstate '.$id2 : 'Tie'),
             'message' => $score1 > $score2 ? "RealEstate {$id1} scores higher." : ($score2 > $score1 ? "RealEstate {$id2} scores higher." : "RealEstate {$id1} and {$id2} have the same total score."),
         ]);
     }
@@ -413,7 +419,6 @@ class RealEstateController extends Controller
             }
         }
 
-
         if ($realEstate->properties) {
             $properties = $realEstate->properties;
 
@@ -450,7 +455,6 @@ class RealEstateController extends Controller
             } else {
                 $score += $this->getQualityScore($properties->transportation_status ?? null);
             }
-
 
             // Want Water Well
             $wantWaterWell = $preferences['want_water_well'] ?? null;
@@ -579,7 +583,6 @@ class RealEstateController extends Controller
                 }
             }
 
-
             $desiredOwnershipType = $preferences['desired_ownership_type'] ?? null;
             if ($desiredOwnershipType !== null) {
                 if (($properties->ownership_type ?? null) === $desiredOwnershipType) {
@@ -593,13 +596,11 @@ class RealEstateController extends Controller
                 }
             }
 
-
             $score += $properties->total_weight ?? 0;
         }
 
         return $score;
     }
-
 
     private function getQualityScore(?string $status): int
     {
@@ -632,25 +633,25 @@ class RealEstateController extends Controller
             $winnerPrice = 'Tie';
             $descriptionPrice = '';
 
-            if ($isInRange1 && !$isInRange2) {
+            if ($isInRange1 && ! $isInRange2) {
                 $winnerPrice = 'RealEstate 1';
                 $descriptionPrice = "RealEstate {$realEstate1->id} is within your preferred price range ({$minPrice}-{$maxPrice}), while RealEstate {$realEstate2->id} is not.";
-            } elseif (!$isInRange1 && $isInRange2) {
+            } elseif (! $isInRange1 && $isInRange2) {
                 $winnerPrice = 'RealEstate 2';
                 $descriptionPrice = "RealEstate {$realEstate2->id} is within your preferred price range ({$minPrice}-{$maxPrice}), while RealEstate {$realEstate1->id} is not.";
             } elseif ($isInRange1 && $isInRange2) {
                 $winnerPrice = ($realEstate1->price <= $realEstate2->price) ? 'RealEstate 1' : 'RealEstate 2';
-                $descriptionPrice = "Both are in range. RealEstate " . ($winnerPrice === 'RealEstate 1' ? $realEstate1->id : $realEstate2->id) . " has a slightly better price within range.";
+                $descriptionPrice = 'Both are in range. RealEstate '.($winnerPrice === 'RealEstate 1' ? $realEstate1->id : $realEstate2->id).' has a slightly better price within range.';
             } else {
                 $winnerPrice = ($realEstate1->price < $realEstate2->price) ? 'RealEstate 1' : 'RealEstate 2';
-                $descriptionPrice = "Neither is in your preferred price range. RealEstate " . ($winnerPrice === 'RealEstate 1' ? $realEstate1->id : $realEstate2->id) . " has a lower price.";
+                $descriptionPrice = 'Neither is in your preferred price range. RealEstate '.($winnerPrice === 'RealEstate 1' ? $realEstate1->id : $realEstate2->id).' has a lower price.';
             }
 
             $breakdown['price'] = [
                 'title' => 'Price',
                 'value_1' => $realEstate1->price,
                 'value_2' => $realEstate2->price,
-                'user_preferred_range' => ($minPrice ?? 'N/A') . '-' . ($maxPrice ?? 'N/A'),
+                'user_preferred_range' => ($minPrice ?? 'N/A').'-'.($maxPrice ?? 'N/A'),
                 'RealEstate 1 In Range' => $isInRange1 ? 'Yes' : 'No',
                 'RealEstate 2 In Range' => $isInRange2 ? 'Yes' : 'No',
                 'winner' => $winnerPrice,
@@ -802,18 +803,18 @@ class RealEstateController extends Controller
                 $winnerRooms = 'Tie';
                 $descriptionRooms = '';
 
-                if ($rooms1Meet && !$rooms2Meet) {
+                if ($rooms1Meet && ! $rooms2Meet) {
                     $winnerRooms = 'RealEstate 1';
                     $descriptionRooms = "RealEstate {$realEstate1->id} meets your minimum room requirement ({$minRooms}), while RealEstate {$realEstate2->id} does not.";
-                } elseif (!$rooms1Meet && $rooms2Meet) {
+                } elseif (! $rooms1Meet && $rooms2Meet) {
                     $winnerRooms = 'RealEstate 2';
                     $descriptionRooms = "RealEstate {$realEstate2->id} meets your minimum room requirement ({$minRooms}), while RealEstate {$realEstate1->id} does not.";
                 } elseif ($rooms1Meet && $rooms2Meet) {
                     $winnerRooms = (($props1->room_no ?? 0) > ($props2->room_no ?? 0)) ? 'RealEstate 1' : (($props2->room_no ?? 0) > ($props1->room_no ?? 0) ? 'RealEstate 2' : 'Tie');
-                    $descriptionRooms = "Both meet your minimum. " . ($winnerRooms === 'Tie' ? "Both have the same number of rooms." : $winnerRooms . " has more rooms.");
+                    $descriptionRooms = 'Both meet your minimum. '.($winnerRooms === 'Tie' ? 'Both have the same number of rooms.' : $winnerRooms.' has more rooms.');
                 } else {
                     $winnerRooms = (($props1->room_no ?? 0) > ($props2->room_no ?? 0)) ? 'RealEstate 1' : (($props2->room_no ?? 0) > ($props1->room_no ?? 0) ? 'RealEstate 2' : 'Tie');
-                    $descriptionRooms = "Neither meets your minimum. " . ($winnerRooms === 'Tie' ? "Both have the same number of rooms." : $winnerRooms . " has more rooms.");
+                    $descriptionRooms = 'Neither meets your minimum. '.($winnerRooms === 'Tie' ? 'Both have the same number of rooms.' : $winnerRooms.' has more rooms.');
                 }
                 $breakdown['room_no'] = [
                     'title' => 'Number of Rooms',
@@ -832,7 +833,6 @@ class RealEstateController extends Controller
                 );
             }
 
-
             $breakdown['direction'] = $this->compareEnumField(
                 'Direction',
                 $props1->direction ?? null,
@@ -849,18 +849,18 @@ class RealEstateController extends Controller
                 $winnerSpace = 'Tie';
                 $descriptionSpace = '';
 
-                if ($space1Meet && !$space2Meet) {
+                if ($space1Meet && ! $space2Meet) {
                     $winnerSpace = 'RealEstate 1';
                     $descriptionSpace = "RealEstate {$realEstate1->id} meets your minimum space requirement ({$minSpaceStatus}), while RealEstate {$realEstate2->id} does not.";
-                } elseif (!$space1Meet && $space2Meet) {
+                } elseif (! $space1Meet && $space2Meet) {
                     $winnerSpace = 'RealEstate 2';
                     $descriptionSpace = "RealEstate {$realEstate2->id} meets your minimum space requirement ({$minSpaceStatus}), while RealEstate {$realEstate1->id} does not.";
                 } elseif ($space1Meet && $space2Meet) {
                     $winnerSpace = (($props1->space_status ?? 0) > ($props2->space_status ?? 0)) ? 'RealEstate 1' : (($props2->space_status ?? 0) > ($props1->space_status ?? 0) ? 'RealEstate 2' : 'Tie');
-                    $descriptionSpace = "Both meet your minimum. " . ($winnerSpace === 'Tie' ? "Both have the same space." : $winnerSpace . " has more space.");
+                    $descriptionSpace = 'Both meet your minimum. '.($winnerSpace === 'Tie' ? 'Both have the same space.' : $winnerSpace.' has more space.');
                 } else {
                     $winnerSpace = (($props1->space_status ?? 0) > ($props2->space_status ?? 0)) ? 'RealEstate 1' : (($props2->space_status ?? 0) > ($props1->space_status ?? 0) ? 'RealEstate 2' : 'Tie');
-                    $descriptionSpace = "Neither meets your minimum. " . ($winnerSpace === 'Tie' ? "Both have the same space." : $winnerSpace . " has more space.");
+                    $descriptionSpace = 'Neither meets your minimum. '.($winnerSpace === 'Tie' ? 'Both have the same space.' : $winnerSpace.' has more space.');
                 }
                 $breakdown['space_status'] = [
                     'title' => 'Space Status',
@@ -884,7 +884,7 @@ class RealEstateController extends Controller
                 $props1->floor ?? 0,
                 $props2->floor ?? 0,
                 false,
-                fn($val1, $val2) => "RealEstate {$realEstate1->id}: Floor {$val1}, RealEstate {$realEstate2->id}: Floor {$val2}"
+                fn ($val1, $val2) => "RealEstate {$realEstate1->id}: Floor {$val1}, RealEstate {$realEstate2->id}: Floor {$val2}"
             );
 
             $desiredAttiredStatus = $preferences['desired_attired_status'] ?? null;
@@ -918,14 +918,13 @@ class RealEstateController extends Controller
                 'title' => 'Detailed Property Features',
                 'value_1' => $props1 ? 'Available' : 'Not Available',
                 'value_2' => $props2 ? 'Available' : 'Not Available',
-                'winner' => ($props1 && !$props2) ? 'RealEstate 1' : (($props2 && !$props1) ? 'RealEstate 2' : 'Tie'),
+                'winner' => ($props1 && ! $props2) ? 'RealEstate 1' : (($props2 && ! $props1) ? 'RealEstate 2' : 'Tie'),
                 'description' => 'Detailed features comparison is limited as one or both properties are missing their associated RealEstate_properties data.',
             ];
         }
 
         return $breakdown;
     }
-
 
     private function compareNumericField(string $title, $val1, $val2, bool $lowerIsBetter, ?callable $descriptionLogic = null): array
     {
@@ -942,9 +941,9 @@ class RealEstateController extends Controller
         if ($val1 === $val2) {
             $defaultDescription = "Both have the same {$title} ({$val1}).";
         } elseif ($lowerIsBetter) {
-            $defaultDescription = ($winner === 'RealEstate 1' ? 'RealEstate 1 has lower ' : 'RealEstate 2 has lower ') . $title . " ({$val1} vs {$val2}).";
+            $defaultDescription = ($winner === 'RealEstate 1' ? 'RealEstate 1 has lower ' : 'RealEstate 2 has lower ').$title." ({$val1} vs {$val2}).";
         } else {
-            $defaultDescription = ($winner === 'RealEstate 1' ? 'RealEstate 1 has higher ' : 'RealEstate 2 has higher ') . $title . " ({$val1} vs {$val2}).";
+            $defaultDescription = ($winner === 'RealEstate 1' ? 'RealEstate 1 has higher ' : 'RealEstate 2 has higher ').$title." ({$val1} vs {$val2}).";
         }
 
         return [
@@ -959,21 +958,21 @@ class RealEstateController extends Controller
     private function compareBooleanField(string $title, bool $val1, bool $val2, string $trueDesc, string $falseDesc): array
     {
         $winner = 'Tie';
-        if ($val1 && !$val2) {
+        if ($val1 && ! $val2) {
             $winner = 'RealEstate 1';
-        } elseif ($val2 && !$val1) {
+        } elseif ($val2 && ! $val1) {
             $winner = 'RealEstate 2';
         }
 
         $description = '';
         if ($val1 && $val2) {
-            $description = "Both " . strtolower($trueDesc);
+            $description = 'Both '.strtolower($trueDesc);
         } elseif ($val1) {
-            $description = "Only RealEstate 1 " . strtolower($trueDesc);
+            $description = 'Only RealEstate 1 '.strtolower($trueDesc);
         } elseif ($val2) {
-            $description = "Only RealEstate 2 " . strtolower($trueDesc);
+            $description = 'Only RealEstate 2 '.strtolower($trueDesc);
         } else {
-            $description = "Neither " . strtolower($falseDesc);
+            $description = 'Neither '.strtolower($falseDesc);
         }
 
         return [
@@ -995,25 +994,25 @@ class RealEstateController extends Controller
             $val1MatchesPref = ($val1 === $userPreference); // True if property 1 has (or doesn't have) what user wants
             $val2MatchesPref = ($val2 === $userPreference); // True if property 2 has (or doesn't have) what user wants
 
-            if ($val1MatchesPref && !$val2MatchesPref) {
+            if ($val1MatchesPref && ! $val2MatchesPref) {
                 $winner = 'RealEstate 1';
-                $description = "RealEstate 1 " . ($userPreference ? "has " : "doesn't have ") . strtolower($trueDesc) . " as preferred, while RealEstate 2 does not.";
-            } elseif (!$val1MatchesPref && $val2MatchesPref) {
+                $description = 'RealEstate 1 '.($userPreference ? 'has ' : "doesn't have ").strtolower($trueDesc).' as preferred, while RealEstate 2 does not.';
+            } elseif (! $val1MatchesPref && $val2MatchesPref) {
                 $winner = 'RealEstate 2';
-                $description = "RealEstate 2 " . ($userPreference ? "has " : "doesn't have ") . strtolower($trueDesc) . " as preferred, while RealEstate 1 does not.";
+                $description = 'RealEstate 2 '.($userPreference ? 'has ' : "doesn't have ").strtolower($trueDesc).' as preferred, while RealEstate 1 does not.';
             } elseif ($val1MatchesPref && $val2MatchesPref) {
                 $winner = 'Tie';
-                $description = "Both RealEstate 1 and RealEstate 2 " . ($userPreference ? "match your preference for " : "match your preference against ") . strtolower($trueDesc) . ".";
+                $description = 'Both RealEstate 1 and RealEstate 2 '.($userPreference ? 'match your preference for ' : 'match your preference against ').strtolower($trueDesc).'.';
             } else {
-                if ($val1 && !$val2) {
+                if ($val1 && ! $val2) {
                     $winner = 'RealEstate 1';
-                    $description = "Neither perfectly matches your preference. RealEstate 1 " . strtolower($trueDesc) . ", RealEstate 2 does not.";
-                } elseif (!$val1 && $val2) {
+                    $description = 'Neither perfectly matches your preference. RealEstate 1 '.strtolower($trueDesc).', RealEstate 2 does not.';
+                } elseif (! $val1 && $val2) {
                     $winner = 'RealEstate 2';
-                    $description = "Neither perfectly matches your preference. RealEstate 2 " . strtolower($trueDesc) . ", RealEstate 1 does not.";
+                    $description = 'Neither perfectly matches your preference. RealEstate 2 '.strtolower($trueDesc).', RealEstate 1 does not.';
                 } else {
                     $winner = 'Tie';
-                    $description = "Neither perfectly matches your preference. Both " . ($val1 ? "have " . strtolower($trueDesc) : "don't have " . strtolower($trueDesc)) . ".";
+                    $description = 'Neither perfectly matches your preference. Both '.($val1 ? 'have '.strtolower($trueDesc) : "don't have ".strtolower($trueDesc)).'.';
                 }
             }
         } else {
@@ -1047,7 +1046,7 @@ class RealEstateController extends Controller
 
         $description = "RealEstate 1: {$displayVal1}, RealEstate 2: {$displayVal2}.";
         if ($winner !== 'Tie') {
-            $description .= " " . $winner . " has a better {$title}.";
+            $description .= ' '.$winner." has a better {$title}.";
         } else {
             $description .= " Both have similar {$title}.";
         }
@@ -1085,10 +1084,10 @@ class RealEstateController extends Controller
             $val1MatchesPref = ($normalizedEnumVal1 === $normalizedUserDesired);
             $val2MatchesPref = ($normalizedEnumVal2 === $normalizedUserDesired);
 
-            if ($val1MatchesPref && !$val2MatchesPref) {
+            if ($val1MatchesPref && ! $val2MatchesPref) {
                 $winner = 'RealEstate 1';
                 $description = "RealEstate 1 matches your desired '{$displayMap[$userDesiredValue]}' {$title}, while RealEstate 2 does not.";
-            } elseif (!$val1MatchesPref && $val2MatchesPref) {
+            } elseif (! $val1MatchesPref && $val2MatchesPref) {
                 $winner = 'RealEstate 2';
                 $description = "RealEstate 2 matches your desired '{$displayMap[$userDesiredValue]}' {$title}, while RealEstate 1 does not.";
             } elseif ($val1MatchesPref && $val2MatchesPref) {
@@ -1098,7 +1097,7 @@ class RealEstateController extends Controller
                 $p1 = $priorityMap[$normalizedEnumVal1] ?? 0;
                 $p2 = $priorityMap[$normalizedEnumVal2] ?? 0;
                 $winner = ($p1 > $p2) ? 'RealEstate 1' : (($p2 > $p1) ? 'RealEstate 2' : 'Tie');
-                $description = "Neither matches your desired '{$displayMap[$userDesiredValue]}' {$title}. " . ($winner === 'Tie' ? "Both have similar default {$title}." : $winner . " has a slightly better default {$title}.");
+                $description = "Neither matches your desired '{$displayMap[$userDesiredValue]}' {$title}. ".($winner === 'Tie' ? "Both have similar default {$title}." : $winner." has a slightly better default {$title}.");
             }
         } else {
             return $this->compareEnumField($title, $enumVal1, $enumVal2, $displayMap, $priorityMap);

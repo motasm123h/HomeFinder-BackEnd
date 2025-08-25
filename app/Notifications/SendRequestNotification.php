@@ -4,8 +4,6 @@ namespace App\Notifications;
 
 use App\Models\RealEstate_Request;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class SendRequestNotification extends Notification
@@ -30,8 +28,6 @@ class SendRequestNotification extends Notification
         return ['database'];
     }
 
-
-
     /**
      * Get the array representation for database storage.
      */
@@ -40,7 +36,7 @@ class SendRequestNotification extends Notification
         return [
             'request_id' => $this->realEstateRequest->id,
             'message' => 'Your have new request received',
-            'link' => '/requests/' . $this->realEstateRequest->id
+            'link' => '/requests/'.$this->realEstateRequest->id,
         ];
     }
 }

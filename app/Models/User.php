@@ -2,15 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\Address;
-use App\Models\Contact;
-use App\Models\CustomerPreferences;
-use App\Models\RealEstate;
-use App\Models\RealEstate_Request;
-use App\Models\Reviews;
-use App\Models\Search_Log;
-use App\Models\Services;
-use App\Models\Verification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -21,7 +12,7 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -52,7 +43,6 @@ class User extends Authenticatable
         return $this->hasOne(CustomerPreferences::class);
     }
 
-
     /**
      * Get the attributes that should be cast.
      *
@@ -80,6 +70,7 @@ class User extends Authenticatable
     {
         return $this->hasOne(Address::class, 'user_id');
     }
+
     public function verification()
     {
         return $this->hasOne(Verification::class, 'user_id');
@@ -89,6 +80,7 @@ class User extends Authenticatable
     {
         return $this->hasMany(RealEstate::class);
     }
+
     public function service()
     {
         return $this->hasMany(Services::class, 'user_id');

@@ -5,12 +5,14 @@ namespace App\Repository\Models;
 use App\Models\Services_Type;
 use App\Repository\Repo;
 use Illuminate\Database\Eloquent\Model;
+
 class ServiceTypeRepository extends Repo
 {
     public function __construct()
     {
         parent::__construct(Services_Type::class);
     }
+
     public function create(array $data): Model
     {
         return parent::create($data);

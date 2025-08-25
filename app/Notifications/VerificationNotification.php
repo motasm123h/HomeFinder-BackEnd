@@ -2,11 +2,9 @@
 
 namespace App\Notifications;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Notification;
 use App\Models\Verification;
+use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Notification;
 
 class VerificationNotification extends Notification
 {
@@ -29,7 +27,7 @@ class VerificationNotification extends Notification
         return [
             'message' => 'Your account has been verified successfully',
             'verification_id' => $this->verification->id,
-            'link' => '/profile'
+            'link' => '/profile',
         ];
     }
 }

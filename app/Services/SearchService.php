@@ -2,12 +2,12 @@
 
 namespace App\Services;
 
-use App\Models\{RealEstate, Search_Log};
+use App\Models\RealEstate;
+use App\Models\Search_Log;
 use Illuminate\Support\Facades\DB;
 
 class SearchService
 {
-
     public function getMostSearchedRealEstates(int $limit = 5)
     {
         // Get the current database connection name
@@ -48,12 +48,12 @@ class SearchService
                     switch ($search->value_type) {
                         case 'range':
                             if (preg_match('/^(\d+)-(\d+)$/', $value, $matches)) {
-                                $subQuery->whereBetween('price', [(float)$matches[1], (float)$matches[2]]);
+                                $subQuery->whereBetween('price', [(float) $matches[1], (float) $matches[2]]);
                             }
                             break;
 
                         case 'numeric':
-                            $subQuery->where($key, (float)$value);
+                            $subQuery->where($key, (float) $value);
                             break;
 
                         default:
@@ -105,12 +105,12 @@ class SearchService
             ->paginate(10);
     }
 
-    public function logSearch(string $key, int $value = 1, User $user = null)
+    public function logSearch(string $key, int $value = 1, ?User $user = null)
     {
         return Search_Log::create([
             'key' => $key,
             'value' => $value,
-            'user_id' => $user?->id
+            'user_id' => $user?->id,
         ]);
     }
 }

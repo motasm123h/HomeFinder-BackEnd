@@ -14,6 +14,7 @@ class OfficeService
     {
         return $this->repository->Arrivepaginate($perPage);
     }
+
     public function getPaginatedSent(int $perPage = 15)
     {
         return $this->repository->Sentpaginate($perPage);

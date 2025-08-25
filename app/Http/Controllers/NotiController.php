@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+
 // use App\Classes\FireBaseServices\FirebaseService;
 // use App\Repository\Models\Notification\NotificationService;
 
@@ -27,15 +28,16 @@ class NotiController extends Controller
         $notifications = $user->notifications;
 
         return response()->json([
-            'data' => $notifications
+            'data' => $notifications,
         ]);
     }
 
     public function deleteNotification($id)
     {
         $user = auth()->user()->notifications()->findOrFail($id)->delete();
+
         return response()->json([
-            'data' => 'done'
+            'data' => 'done',
         ]);
     }
 }

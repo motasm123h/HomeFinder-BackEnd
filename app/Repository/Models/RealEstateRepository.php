@@ -3,19 +3,16 @@
 namespace App\Repository\Models;
 
 use App\Models\RealEstate;
-use App\Models\RealEstate_images;
 use App\Repository\Repo;
 use App\Services\MediaService;
 
-
 class RealEstateRepository extends Repo
 {
-
     public function __construct(
         private MediaService $mediaService,
 
     ) {
-        parent::__construct(RealEstate::class,);
+        parent::__construct(RealEstate::class);
     }
 
     public function create(array $data): RealEstate
@@ -27,8 +24,10 @@ class RealEstateRepository extends Repo
     {
         $realEstate = parent::findOrFail($id);
         $realEstate->update($data);
+
         return $realEstate;
     }
+
     public function createProperties(RealEstate $realEstate, array $properties): void
     {
         $realEstate->properties()->create($properties);
@@ -50,7 +49,7 @@ class RealEstateRepository extends Repo
             'location',
             'images',
             'user:id,name,email,status',
-            'user.contact:id,phone_no,username,user_id'
+            'user.contact:id,phone_no,username,user_id',
         ]);
 
         $view = $realEstate->view()->first();

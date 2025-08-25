@@ -22,7 +22,7 @@ class admin
         }
 
         return response()->json([
-            'message' => 'You are not authorized to perform this action.'
+            'message' => 'You are not authorized to perform this action.',
         ], 403);
     }
 }

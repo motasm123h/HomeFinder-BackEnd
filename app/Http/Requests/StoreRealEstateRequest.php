@@ -32,14 +32,14 @@ class StoreRealEstateRequest extends FormRequest
             'kind' => ['required', Rule::in(['apartment', 'villa', 'chalet'])],
             'user_id' => 'required|exists:users,id',
             'real_estate_location_id' => 'required|exists:real_estate_locations,id',
-            
+
             'images' => 'required|array',
             'images.*' => [
                 'image',
                 'mimes:jpeg,png,jpg,gif',
-                'max:' . config('model_paths.real_estate.max_file_size'),
+                'max:'.config('model_paths.real_estate.max_file_size'),
             ],
-            
+
             // Property Fields (updated to match your schema)
             'electricity_status' => ['required', Rule::in(['1', '2', '3'])],
             'water_status' => ['required', Rule::in(['1', '2', '3'])],

@@ -4,7 +4,6 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Auth;
 
 class UpdateRequest extends FormRequest
 {
@@ -19,10 +18,9 @@ class UpdateRequest extends FormRequest
         $user = $this->route('user');
 
         // Ensure the user exists before trying to access its 'id'
-        if (!$user) {
+        if (! $user) {
             return false;
         }
-
 
         return true;
     }
@@ -35,6 +33,7 @@ class UpdateRequest extends FormRequest
     public function rules()
     {
         $user = $this->route('user');
+
         return [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'email' => [

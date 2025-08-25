@@ -14,13 +14,8 @@ use App\Http\Controllers\VerificationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-
-
-
-
-
 Route::get('/user', function () {
-    return "hi";
+    return 'hi';
 });
 
 Route::get('/sanctum/csrf-cookie', function (Request $request) {
@@ -34,7 +29,6 @@ Route::prefix('services/')->group(function () {
     Route::get('servicesType/{id}', [ServicesController::class, 'showServiceByType']);
     Route::get('office/{id}', [ServicesController::class, 'officeService']);
 });
-
 
 Route::prefix('search/')->group(function () {
     Route::get('most-search', [SearchController::class, 'mostSearched']);
@@ -63,8 +57,6 @@ Route::get('/admin/users', [AdminController::class, 'index']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/users/{user}', [AuthController::class, 'update']);
-
-
 
     Route::get('/customer-preferences', [CustomerPreferenceController::class, 'index']);
     Route::post('/customer-preferences', [CustomerPreferenceController::class, 'store']);
@@ -98,13 +90,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
         });
     });
 
-
     Route::prefix('office/')->group(function () {
         Route::get('indexRequest', [OfficeController::class, 'getPaginatedRequests']);
         Route::get('indexSent', [OfficeController::class, 'getPaginatedSent']);
         Route::post('delete-request/{id}', [OfficeController::class, 'delete']);
     });
-
 
     Route::get('/', [ServicesController::class, 'index']);
 

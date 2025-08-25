@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Exceptions\ApiException;
 use App\Helper\ProfileHelper;
 use App\Helper\RealEstateHelper;
-use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\UpdateRequest;
@@ -15,7 +14,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -59,7 +57,7 @@ class AuthController extends Controller
             $validated = $request->validate([
                 'name' => 'required|string',
                 'email' => 'required|email|unique:users',
-                'password' => 'required|min:8'
+                'password' => 'required|min:8',
             ]);
 
             $user = User::create([
@@ -81,7 +79,7 @@ class AuthController extends Controller
     {
         $credentials = $request->validated();
 
-        if (!Auth::attempt($credentials)) {
+        if (! Auth::attempt($credentials)) {
             throw new ApiException('Invalid credentials', 401);
         }
 
@@ -95,6 +93,7 @@ class AuthController extends Controller
     public function logout()
     {
         optional(auth()->user())->tokens()->delete();
+
         return $this->apiResponse('Logged out successfully', null, 200);
     }
 
@@ -103,31 +102,30 @@ class AuthController extends Controller
 
         $user = User::with(['address', 'contact'])->findOrFail($id);
         $realEstates = $user->realEstate()
-            ->with(['images' => fn($q) => $q->limit(1), 'properties'])
+            ->with(['images' => fn ($q) => $q->limit(1), 'properties'])
             ->paginate(10);
 
         $services = $user->service()->paginate(10);
         $verification = $user->verification()->get();
         $formattedData = ProfileHelper::formatUserProfile($user);
         $formattedData['realEstate'] = array_map(
-            fn($item) => RealEstateHelper::formatRealEstate($item),
+            fn ($item) => RealEstateHelper::formatRealEstate($item),
             $realEstates->items()
         );
         $formattedData['verification'] = $verification;
         $formattedData['service'] = $services->items();
-
 
         return response()->json([
             'message' => 'Profile retrieved successfully',
             'data' => $formattedData,
             'meta' => [
                 'realEstate' => $this->buildPaginationMeta($realEstates),
-                'service'    => $this->buildPaginationMeta($services),
+                'service' => $this->buildPaginationMeta($services),
             ],
             'links' => [
                 'realEstate' => $this->buildPaginationLinks($realEstates),
-                'service'    => $this->buildPaginationLinks($services),
-            ]
+                'service' => $this->buildPaginationLinks($services),
+            ],
         ]);
     }
 
@@ -159,16 +157,15 @@ class AuthController extends Controller
         });
     }
 
-
     private function buildPaginationMeta($paginator)
     {
         return [
-            'total'        => $paginator->total(),
+            'total' => $paginator->total(),
             'current_page' => $paginator->currentPage(),
-            'per_page'     => $paginator->perPage(),
-            'last_page'    => $paginator->lastPage(),
-            'from'         => $paginator->firstItem(),
-            'to'           => $paginator->lastItem(),
+            'per_page' => $paginator->perPage(),
+            'last_page' => $paginator->lastPage(),
+            'from' => $paginator->firstItem(),
+            'to' => $paginator->lastItem(),
         ];
     }
 
@@ -176,8 +173,8 @@ class AuthController extends Controller
     {
         return [
             'first_page_url' => $paginator->url(1),
-            'last_page_url'  => $paginator->url($paginator->lastPage()),
-            'next_page_url'  => $paginator->nextPageUrl(),
+            'last_page_url' => $paginator->url($paginator->lastPage()),
+            'next_page_url' => $paginator->nextPageUrl(),
             'prev_page_url' => $paginator->previousPageUrl(),
         ];
     }
@@ -186,7 +183,7 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:users,email',
-            'password' => 'required|min:8|confirmed'
+            'password' => 'required|min:8|confirmed',
         ]);
 
         if ($validator->fails()) {

@@ -49,7 +49,7 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => public_path('storage'),
-            'url' => env('APP_URL') . '/storage',
+            'url' => env('APP_URL').'/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
@@ -59,12 +59,12 @@ return [
         //     'driver' => 'local',
         //     'root' => storage_path('app/public/real-estate'),
         //     'url' => env('APP_URL').'/storage/real-estate',
-        //     'visibility' => 'public',    
+        //     'visibility' => 'public',
         // ],
         'real_estate' => [
             'driver' => 'local',
             'root' => public_path('storage/real-estate'),
-            'url' => env('APP_URL') . '/storage/real-estate',
+            'url' => env('APP_URL').'/storage/real-estate',
             'visibility' => 'public',
         ],
 

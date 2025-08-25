@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Services\SearchService;
 use App\Models\RealEstate;
 use App\Models\RealEstate_Location;
 use App\Services\PropertyMatcher;
+use App\Services\SearchService;
 use App\Traits\ResponseTrait;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log; // For logging
 
 class SearchController extends Controller
@@ -15,20 +15,23 @@ class SearchController extends Controller
     use ResponseTrait;
 
     protected PropertyMatcher $propertyMatcher;
+
     public function __construct(private SearchService $searchService, PropertyMatcher $propertyMatcher)
     {
         $this->propertyMatcher = $propertyMatcher;
     }
+
     public function mostSearched()
     {
         $results = $this->searchService->getMostSearchedRealEstates();
+
         return response()->json($results);
     }
-
 
     public function mostWatch()
     {
         $results = $this->searchService->getMostWatchedRealEstates();
+
         return response()->json($results);
     }
 
@@ -62,13 +65,12 @@ class SearchController extends Controller
 
         $actualUserInputCount = 0;
         foreach ($validated as $key => $value) {
-            if (empty($value) || !isset($this->propertyMatcher->weights[$key]) || in_array($key, ['limit', 'min_similarity', 'strict_match_threshold'])) {
+            if (empty($value) || ! isset($this->propertyMatcher->weights[$key]) || in_array($key, ['limit', 'min_similarity', 'strict_match_threshold'])) {
                 continue;
             }
             $actualUserInputCount++;
         }
         $strictMatchThreshold = min($strictMatchThreshold, $actualUserInputCount);
-
 
         $results = $this->propertyMatcher->findMatches(
             $validated,
@@ -80,7 +82,7 @@ class SearchController extends Controller
         return $this->apiResponse(
             'Preference-based real estates retrieved successfully',
             [
-                'matches' => $results, 
+                'matches' => $results,
                 'searchInput' => $validated,
                 'effectiveMinSimilarity' => $minSimilarity,
                 'effectiveStrictMatchThreshold' => $strictMatchThreshold,
@@ -88,6 +90,7 @@ class SearchController extends Controller
             200
         );
     }
+
     public function byLocation(Request $request) {}
 
     // public function search(Request $request)
@@ -123,7 +126,6 @@ class SearchController extends Controller
     //         'data' => $results,
     //     ]);
     // }
-
 
     // public function search(Request $request)
     // {
@@ -255,19 +257,11 @@ class SearchController extends Controller
     //     return 'any';
     // }
 
-
-
-
-
-
-
-
-
     public function search(Request $request)
     {
         $query = trim($request->input('query'));
 
-        if (!$query) {
+        if (! $query) {
             return response()->json([
                 'message' => 'Empty search query.',
                 'data' => [],
@@ -290,7 +284,7 @@ class SearchController extends Controller
         if ($searchParams['location']) {
             $locationQuery = $searchParams['location'];
             // Find location IDs that match the extracted location query
-            $locationIds = RealEstate_Location::where('district', 'like', '%' . $locationQuery . '%')
+            $locationIds = RealEstate_Location::where('district', 'like', '%'.$locationQuery.'%')
                 ->pluck('id');
             if ($locationIds->isNotEmpty()) {
                 $results->whereIn('real_estate_location_id', $locationIds);
@@ -318,7 +312,7 @@ class SearchController extends Controller
         }
 
         // Apply General Keywords Filter for any remaining unclassified terms
-        if (!empty($searchParams['general_keywords'])) {
+        if (! empty($searchParams['general_keywords'])) {
             $generalQueryString = implode('%', $searchParams['general_keywords']); // Use % for a broader 'like' match
             Log::info('Applying general keywords filter:', ['keywords' => $searchParams['general_keywords'], 'like_string' => $generalQueryString]);
 
@@ -348,7 +342,7 @@ class SearchController extends Controller
             'price_min' => null,
             'price_max' => null,
             'type' => null,
-            'general_keywords' => []
+            'general_keywords' => [],
         ];
 
         // Keep a copy of the original query (lowercased) to remove extracted parts later for general keywords.
@@ -368,7 +362,7 @@ class SearchController extends Controller
         }
 
         // If not rent, check for buy keywords
-        if (!$params['type']) {
+        if (! $params['type']) {
             foreach ($buyKeywords as $keyword) {
                 if (str_contains($workingQuery, $keyword)) {
                     $params['type'] = 'sale';
@@ -377,7 +371,6 @@ class SearchController extends Controller
                 }
             }
         }
-
 
         preg_match_all('/(?:بسعر|من|الى|حوالي)?\s*(\d+)(?:\s*الى\s*(\d+))?/u', $workingQuery, $matches, PREG_SET_ORDER);
 
@@ -389,10 +382,10 @@ class SearchController extends Controller
             if (isset($match[2])) {
                 $extractedNumbers[] = (int) $match[2];
             }
-            $workingQuery = preg_replace('/' . preg_quote($match[0], '/') . '/u', '', $workingQuery, 1);
+            $workingQuery = preg_replace('/'.preg_quote($match[0], '/').'/u', '', $workingQuery, 1);
         }
 
-        if (!empty($extractedNumbers)) {
+        if (! empty($extractedNumbers)) {
             sort($extractedNumbers); // Sort to easily pick min and max
 
             $params['price_min'] = $extractedNumbers[0];
@@ -420,7 +413,9 @@ class SearchController extends Controller
 
         foreach ($tempWorkingQueryParts as $part) {
             $part = trim($part);
-            if (empty($part)) continue;
+            if (empty($part)) {
+                continue;
+            }
 
             $isLocationKeyword = false;
             foreach ($locationKeywords as $keyword) {
@@ -436,9 +431,8 @@ class SearchController extends Controller
             }
         }
 
-
         $potentialLocation = implode(' ', $tempWorkingQueryPartsCleaned);
-        if (!empty($potentialLocation) && strlen($potentialLocation) > 2) { // Avoid very short, meaningless strings
+        if (! empty($potentialLocation) && strlen($potentialLocation) > 2) { // Avoid very short, meaningless strings
             $params['location'] = $potentialLocation;
             // Remove the identified location from the working query
             foreach ($locationKeywords as $keyword) {
@@ -446,7 +440,6 @@ class SearchController extends Controller
             }
             $workingQuery = str_replace($potentialLocation, '', $workingQuery);
         }
-
 
         // --- 4. Identify General Keywords (What's left) ---
         // Clean up the working query further by removing any remaining location keywords that might not have been
@@ -464,7 +457,7 @@ class SearchController extends Controller
         $filteredGeneralKeywords = [];
         foreach ($remainingTerms as $term) {
             $term = trim($term);
-            if (!empty($term) && strlen($term) > 1 && !in_array($term, $stopWords)) { // Exclude very short terms and stop words
+            if (! empty($term) && strlen($term) > 1 && ! in_array($term, $stopWords)) { // Exclude very short terms and stop words
                 $filteredGeneralKeywords[] = $term;
             }
         }

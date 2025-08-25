@@ -12,7 +12,7 @@ class ProfileHelper
             'user' => self::formatUserData($user),
             'address' => self::formatAddress($user),
             'contact' => self::formatContact($user),
-            'listings' => self::formatListings($user)
+            'listings' => self::formatListings($user),
         ];
     }
 
@@ -30,27 +30,28 @@ class ProfileHelper
 
     protected static function formatAddress(User $user): ?array
     {
-        if (!$user->relationLoaded('address') || !$user->address) {
+        if (! $user->relationLoaded('address') || ! $user->address) {
             return null;
         }
 
         return [
             'city' => $user->address->city,
             'district' => $user->address->district,
-            'full_address' => "{$user->address->city}, {$user->address->district}"
+            'full_address' => "{$user->address->city}, {$user->address->district}",
         ];
     }
 
     protected static function formatContact(User $user): ?array
     {
-        if (!$user->relationLoaded('contact') || $user->contact->isEmpty()) {
+        if (! $user->relationLoaded('contact') || $user->contact->isEmpty()) {
             return null;
         }
 
         $contact = $user->contact->first();
+
         return [
             'phone' => self::formatPhone($contact->phone_no),
-            'telegram' => $contact->username
+            'telegram' => $contact->username,
         ];
     }
 
@@ -58,13 +59,13 @@ class ProfileHelper
     {
         return [
             'real_estate' => self::formatRealEstate($user),
-            'services' => self::formatServices($user)
+            'services' => self::formatServices($user),
         ];
     }
 
     public static function formatRealEstate(User $user): array
     {
-        if (!$user->relationLoaded('realEstate')) {
+        if (! $user->relationLoaded('realEstate')) {
             return [];
         }
 
@@ -73,7 +74,7 @@ class ProfileHelper
                 'id' => $property->id,
                 'type' => ucfirst($property->type),
                 'price' => $property->price > 0
-                    ? '$' . number_format($property->price)
+                    ? '$'.number_format($property->price)
                     : 'Contact for price',
                 'status' => $property->status,
                 'location' => $item->location ? [
@@ -86,8 +87,8 @@ class ProfileHelper
                 'details' => [
                     'kind' => $property->kind,
                     // 'room_no' => $properties->properties->room_no,
-                    'description' => $property->description ?: 'No description'
-                ]
+                    'description' => $property->description ?: 'No description',
+                ],
             ];
         })->toArray();
 
@@ -95,7 +96,6 @@ class ProfileHelper
 
     protected static function formatServices(User $user): array
     {
-
 
         return $user->service->map(function ($property) {
             return [
@@ -112,8 +112,9 @@ class ProfileHelper
 
     protected static function formatPhone(string|int $phone): string
     {
-        $phone = (string)$phone;
-        return '+963 ' . substr($phone, 0, 3) . ' ' . substr($phone, 3, 3) . ' ' . substr($phone, 6);
+        $phone = (string) $phone;
+
+        return '+963 '.substr($phone, 0, 3).' '.substr($phone, 3, 3).' '.substr($phone, 6);
     }
 
     protected static function formatRole(string $role): string

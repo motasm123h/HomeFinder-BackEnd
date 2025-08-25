@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Http\Middleware;
 
 use Closure;
@@ -25,11 +24,11 @@ class ApiResponseMiddleware
 
     public function terminate($request, $response)
     {
-        if (!$response->isSuccessful()) {
+        if (! $response->isSuccessful()) {
             app(LoggerInterface::class)->error('API Error', [
                 'status' => $response->status(),
                 'path' => $request->path(),
-                'error' => $response->getContent()
+                'error' => $response->getContent(),
             ]);
         }
     }

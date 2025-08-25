@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreRealEstateRequestRequest; // Assuming this is correct request for OfficeController
+use App\Exceptions\ApiException; // Assuming this is correct request for OfficeController
+use App\Http\Requests\StoreRealEstateRequestRequest;
 use App\Models\User;
 use App\Notifications\SendRequestNotification;
-use App\Services\OfficeService;
-use Illuminate\Http\JsonResponse;
 use App\Policies\PostPolicy;
+use App\Services\OfficeService;
 use App\Traits\ResponseTrait;
-use App\Exceptions\ApiException; // Import your custom exception
-use Illuminate\Database\Eloquent\ModelNotFoundException; // Keep this to throw explicitly if needed
+use Illuminate\Database\Eloquent\ModelNotFoundException; // Import your custom exception
+use Illuminate\Http\JsonResponse; // Keep this to throw explicitly if needed
 
 class OfficeController extends Controller
 {
@@ -72,7 +71,7 @@ class OfficeController extends Controller
     public function delete(int $id): JsonResponse
     {
         // Policy check remains here as it's authorization logic
-        if (!(new PostPolicy)->delete(auth()->user(), $id)) {
+        if (! (new PostPolicy)->delete(auth()->user(), $id)) {
             // Throwing an ApiException for an unauthorized scenario
             throw new ApiException('Unauthorized', 403);
         }
@@ -81,7 +80,7 @@ class OfficeController extends Controller
         // If it returns false for other reasons, you might need a custom exception from the service.
         $success = $this->service->deleteRequest($id);
 
-        if (!$success) {
+        if (! $success) {
             // If deleteRequest returns false because the item wasn't found,
             // or if it should throw a ModelNotFoundException internally, that's better.
             // For now, assuming false means "not found" or "failed deletion".

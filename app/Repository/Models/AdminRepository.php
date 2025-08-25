@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Repository\Models;
+
 use App\Models\User;
 use App\Repository\Repo;
 
@@ -12,13 +14,14 @@ class AdminRepository extends Repo
 
     public function getAllByRole(int $role, int $perPage = 15)
     {
-        return parent::getAmount('role',$role,$perPage);
+        return parent::getAmount('role', $role, $perPage);
     }
 
     public function update(array $data, int $id): User
     {
         $user = parent::findOrFail($id);
         $user->update($data);
+
         return $user;
     }
 

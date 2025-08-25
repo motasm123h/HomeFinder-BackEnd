@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CustomerPreference;
 use App\Services\RealEstateRecommendationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -17,22 +16,21 @@ class RecommendationController extends Controller
         $this->recommendationService = $recommendationService;
     }
 
-
     public function getRecommendations(Request $request): JsonResponse
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'message' => 'Unauthenticated. Please log in to get recommendations.',
             ], 401);
         }
 
         $customerPreference = $user->customerPreference;
-        if (!$customerPreference) {
+        if (! $customerPreference) {
             return response()->json([
                 'message' => 'No customer preferences found for your account. Please set your preferences first.',
-                'data' => []
+                'data' => [],
             ], 404);
         }
 
@@ -48,13 +46,13 @@ class RecommendationController extends Controller
         if ($recommendations->isEmpty()) {
             return response()->json([
                 'message' => 'No real estate recommendations found matching your preferences.',
-                'data' => []
+                'data' => [],
             ], 404);
         }
 
         return response()->json([
             'message' => 'Real estate recommendations retrieved successfully based on your preferences.',
-            'data' => $recommendations->values()->all()
+            'data' => $recommendations->values()->all(),
         ], 200);
     }
 }

@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\ApiException;
+use App\Helper\OfficeHelper;
+use App\Models\RealEstate_Location;
 use App\Services\AdminService;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
-use App\Helper\OfficeHelper;
-use App\Models\RealEstate_Location;
 use Illuminate\Support\Facades\Validator;
-use App\Exceptions\ApiException;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 
 class AdminController extends Controller
@@ -22,7 +21,8 @@ class AdminController extends Controller
     {
         $perPage = $request->input('per_page', 12);
         $users = $this->service->getAllAdminUsers($perPage);
-        $offices = $users->load('address', 'contact')->map(fn($user) => OfficeHelper::formatOffice($user));
+        $offices = $users->load('address', 'contact')->map(fn ($user) => OfficeHelper::formatOffice($user));
+
         return $this->apiResponse('Success', $offices, 200);
     }
 
@@ -33,6 +33,7 @@ class AdminController extends Controller
         ]);
 
         $result = $this->service->changeActivation($validated['status'], $id);
+
         return $this->apiResponse(
             'Success',
             $result->load('address', 'contact'),
@@ -44,6 +45,7 @@ class AdminController extends Controller
     {
 
         $this->service->deleteUser($id);
+
         return $this->apiResponse('User deleted successfully', null, 200);
     }
 
@@ -51,7 +53,7 @@ class AdminController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'city' => 'required|string|max:255',
-            'district' => 'required|string|max:255'
+            'district' => 'required|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -60,8 +62,9 @@ class AdminController extends Controller
 
         $location = RealEstate_Location::create([
             'city' => $request->city,
-            'district' => $request->district
+            'district' => $request->district,
         ]);
+
         return $this->apiResponse('Location created successfully', $location, 201);
     }
 

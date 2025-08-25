@@ -9,7 +9,7 @@ class ApiException extends Exception
 {
     protected $data;
 
-    public function __construct(string $message = "", int $code = 0, $data = null, Throwable $previous = null)
+    public function __construct(string $message = '', int $code = 0, $data = null, ?Throwable $previous = null)
     {
         parent::__construct($message, $code, $previous);
         $this->data = $data;

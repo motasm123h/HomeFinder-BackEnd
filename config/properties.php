@@ -22,19 +22,19 @@ return [
     'flexible_fields' => [
         'room_no' => [
             'range' => 1,
-            'weight_reduction_factor' => 0.5
+            'weight_reduction_factor' => 0.5,
         ],
         'space_status' => [
             'range' => 50,
-            'weight_reduction_factor' => 0.3
+            'weight_reduction_factor' => 0.3,
         ],
         'floor' => [
             'range' => 1,
-            'weight_reduction_factor' => 0.5
+            'weight_reduction_factor' => 0.5,
         ],
         'price' => [
             'range' => 20000,
-            'weight_reduction_factor' => 0.4
-        ]
+            'weight_reduction_factor' => 0.4,
+        ],
     ],
 ];

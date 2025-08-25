@@ -2,13 +2,11 @@
 
 namespace App\Models;
 
-use App\Models\RealEstate;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RealEstate_properties extends Model
 {
-
     protected $fillable = [
         'electricity_status',
         'water_status',
@@ -25,14 +23,11 @@ class RealEstate_properties extends Model
         'attired',
         'ownership_type',
         'total_weight',
-        'real_estate_id'
+        'real_estate_id',
     ];
-
 
     /**
      * Get the RealEstate that owns the RealEstate_properties
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function RealEstate(): BelongsTo
     {

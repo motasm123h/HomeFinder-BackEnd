@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\ApiException;
 use App\Models\User;
 use App\Models\Verification;
 use App\Notifications\VerificationNotification;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use App\Traits\ResponseTrait;
-use App\Exceptions\ApiException; // Assuming you created ApiException
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage; // Assuming you created ApiException
 
 class VerificationController extends Controller
 {
@@ -17,6 +17,7 @@ class VerificationController extends Controller
     public function index()
     {
         $verifications = Verification::with('usersInfo', 'usersInfo.contact')->paginate(10);
+
         return $this->apiResponse('Fetched successfully', $verifications, 200);
     }
 
@@ -49,9 +50,9 @@ class VerificationController extends Controller
             'national_no' => $validatedData['national_no'],
             'identity_no' => $validatedData['identity_no'],
             'identity_image' => $validatedData['identity_image'],
-            'activation' => "1",
+            'activation' => '1',
             'user_id' => $validatedData['user_id'],
-            'contract_image' => $validatedData['contract_image']
+            'contract_image' => $validatedData['contract_image'],
         ]);
 
         $user = User::find($validatedData['user_id']);
@@ -63,6 +64,7 @@ class VerificationController extends Controller
     public function show($id)
     {
         $verification = Verification::with('usersInfo')->findOrFail($id); // ModelNotFoundException handled by Handler
+
         return $this->apiResponse('Fetched successfully', $verification, 200);
     }
 
@@ -76,7 +78,7 @@ class VerificationController extends Controller
             'identity_image' => 'sometimes|image|mimes:jpeg,png,jpg|max:2048',
             'activation' => 'sometimes|boolean',
             'user_id' => 'sometimes|exists:users,id',
-            'contract_image' => 'sometimes|image|mimes:jpeg,png,jpg|max:2048'
+            'contract_image' => 'sometimes|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         if ($request->hasFile('identity_image')) {
@@ -94,6 +96,7 @@ class VerificationController extends Controller
         }
 
         $verification->update($validatedData);
+
         return $this->apiResponse('Verification updated successfully', $verification, 200);
     }
 
@@ -109,6 +112,7 @@ class VerificationController extends Controller
         }
 
         $verification->delete();
+
         return $this->apiResponse('Verification deleted successfully', null, 200);
     }
 }

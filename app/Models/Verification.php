@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
 class Verification extends Model
@@ -13,7 +12,7 @@ class Verification extends Model
         'identity_image',
         'activation',
         'user_id',
-        'contract_image'
+        'contract_image',
     ];
 
     public function usersInfo()

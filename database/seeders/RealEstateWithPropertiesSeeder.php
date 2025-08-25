@@ -3,9 +3,9 @@
 namespace Database\Seeders;
 
 use App\Models\RealEstate;
+use App\Models\RealEstate_images;
 use App\Models\RealEstate_Location;
 use App\Models\RealEstate_properties;
-use App\Models\RealEstate_images;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
@@ -18,7 +18,7 @@ class RealEstateWithPropertiesSeeder extends Seeder
             ['email' => 'test@example.com'],
             [
                 'name' => 'Test User',
-                'password' => bcrypt('password')
+                'password' => bcrypt('password'),
             ]
         );
 
@@ -30,7 +30,7 @@ class RealEstateWithPropertiesSeeder extends Seeder
         );
 
         // Create storage directory if it doesn't exist
-        if (!Storage::exists('public/real-estate-images')) {
+        if (! Storage::exists('public/real-estate-images')) {
             Storage::makeDirectory('public/real-estate-images');
         }
 
@@ -80,7 +80,7 @@ class RealEstateWithPropertiesSeeder extends Seeder
                 'attired' => $attiredOptions[array_rand($attiredOptions)],
                 'ownership_type' => $ownershipTypes[array_rand($ownershipTypes)],
                 'total_weight' => rand(1, 100),
-                'real_estate_id' => $realEstate->id
+                'real_estate_id' => $realEstate->id,
             ]);
 
             // $imageCount = rand(1, 2);

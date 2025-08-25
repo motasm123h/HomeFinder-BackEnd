@@ -14,7 +14,7 @@ class ServiceTypeService
     {
         $validator = Validator::make($data, [
             // 'type' => 'required|string|max:255|unique:services_types,type'
-            'type' => 'required|string|max:255'
+            'type' => 'required|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -26,7 +26,7 @@ class ServiceTypeService
 
     public function delete(int $id)
     {
-        if (!$this->repository->delete($id)) {
+        if (! $this->repository->delete($id)) {
             throw new \Exception('Failed to delete service type', 500);
         }
     }

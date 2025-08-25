@@ -25,7 +25,7 @@ class activate
 
         // If user is not logged in, or no verification record, or activation is not 1
         return response()->json([
-            'message' => 'You are not verified yet.'
+            'message' => 'You are not verified yet.',
         ], 403);
     }
 }

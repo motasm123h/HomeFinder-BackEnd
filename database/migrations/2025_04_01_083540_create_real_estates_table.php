@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\RealEstate_Location;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;

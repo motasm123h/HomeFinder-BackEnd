@@ -18,11 +18,11 @@ class ServiceService
     public function findById(int $id)
     {
         $service = $this->repository->findById($id);
-        
-        if (!$service) {
+
+        if (! $service) {
             throw new \Exception('Service not found', 404);
         }
-        
+
         return $service;
     }
 
@@ -34,7 +34,7 @@ class ServiceService
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'services_type_id' => 'required|exists:services_types,id',
-            'user_id' => 'required|exists:users,id'  
+            'user_id' => 'required|exists:users,id',
         ]);
 
         if ($validator->fails()) {
@@ -56,7 +56,7 @@ class ServiceService
             throw new ValidationException($validator);
         }
 
-        if (!$this->repository->update($data,$id)) {
+        if (! $this->repository->update($data, $id)) {
             throw new \Exception('Failed to update service', 500);
         }
 
@@ -65,7 +65,7 @@ class ServiceService
 
     public function delete(int $id)
     {
-        if (!$this->repository->delete($id)) {
+        if (! $this->repository->delete($id)) {
             throw new \Exception('Failed to delete service', 500);
         }
     }

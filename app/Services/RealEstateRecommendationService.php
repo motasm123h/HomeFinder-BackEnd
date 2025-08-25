@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\RealEstate;
-use App\Models\CustomerPreference; // Ensure this is App\Models\CustomerPreference, not CustomerPreferences
+use App\Models\CustomerPreference;
+use App\Models\RealEstate; // Ensure this is App\Models\CustomerPreference, not CustomerPreferences
 use Illuminate\Database\Eloquent\Collection;
 
 class RealEstateRecommendationService
@@ -36,31 +36,34 @@ class RealEstateRecommendationService
     private const TYPE_MAP = [
         'rental' => 'For Rent', 'sale' => 'For Sale', 'للبيع' => 'For Sale', 'للأيجار' => 'For Rent',
     ];
+
     private const KIND_MAP = [
         'apartment' => 'Apartment', 'villa' => 'Villa', 'chalet' => 'Chalet', 'شقة' => 'Apartment', 'فيلا' => 'Villa', 'شاليه' => 'Chalet',
     ];
+
     private const QUALITY_STATUS_MAP = [
         '1' => 'Good', '2' => 'Average', '3' => 'Bad',
     ];
+
     private const YES_NO_MAP = [ // For water_well, solar_energy, garage, elevator, garden_status
         '1' => true, '2' => false,
     ];
+
     private const ATTIRED_MAP = [
         '1' => 'Fully Furnished/Well-Maintained', '2' => 'Partially Furnished/Average-Maintained', '3' => 'Not Furnished/Poorly-Maintained',
     ];
+
     private const OWNERSHIP_TYPE_MAP = [
         'green' => 'Green Ownership', 'court' => 'Court Ownership',
         'Green' => 'Green Ownership', 'Court' => 'Court Ownership', // Ensure consistency with DB storage
     ];
 
-
     /**
      * Get recommendations for a given customer preference.
      *
-     * @param CustomerPreference $customerPreference The customer's preference model. // Corrected type hint
-     * @param int $limit The maximum number of recommendations to return.
-     * @param array $filters Additional filters for RealEstate query (e.g., status, hidden).
-     * @return Collection
+     * @param  CustomerPreference  $customerPreference  The customer's preference model. // Corrected type hint
+     * @param  int  $limit  The maximum number of recommendations to return.
+     * @param  array  $filters  Additional filters for RealEstate query (e.g., status, hidden).
      */
     public function getRecommendations(CustomerPreference $customerPreference, int $limit = 10, array $filters = []): Collection
     {
@@ -71,10 +74,10 @@ class RealEstateRecommendationService
             ->where('hidden', 0);
 
         // Apply additional filters from the request
-        if (!empty($filters['real_estate_type'])) {
+        if (! empty($filters['real_estate_type'])) {
             $query->where('type', $filters['real_estate_type']);
         }
-        if (!empty($filters['real_estate_kind'])) {
+        if (! empty($filters['real_estate_kind'])) {
             $query->where('kind', $filters['real_estate_kind']);
         }
         // Add other direct filters here as needed
@@ -85,6 +88,7 @@ class RealEstateRecommendationService
         $scoredRealEstates = $realEstates->map(function (RealEstate $realEstate) use ($customerPreference) {
             $score = $this->calculateMatchScore($realEstate, $customerPreference);
             $realEstate->match_score = $score; // Add score as a dynamic property
+
             return $realEstate;
         });
 
@@ -95,9 +99,7 @@ class RealEstateRecommendationService
     /**
      * Calculates a match score for a single RealEstate against a CustomerPreference.
      *
-     * @param RealEstate $realEstate
-     * @param CustomerPreference $customerPreference // Corrected type hint
-     * @return int
+     * @param  CustomerPreference  $customerPreference  // Corrected type hint
      */
     private function calculateMatchScore(RealEstate $realEstate, CustomerPreference $customerPreference): int
     {
@@ -120,10 +122,9 @@ class RealEstateRecommendationService
                 $score -= self::PREFERENCE_WEIGHTS['location_match'] / 4; // Penalty if location is completely off
             }
         } else {
-             // If customer preference location data is missing, don't penalize, but don't bonus either.
-             // You could add a small penalty here if *any* missing preference data is considered bad.
+            // If customer preference location data is missing, don't penalize, but don't bonus either.
+            // You could add a small penalty here if *any* missing preference data is considered bad.
         }
-
 
         // 3. Type Match (Rental/Sale) - THIS IS CRITICAL TO CHECK AFTER ADDING TO CUSTOMER_PREFERENCES TABLE
         if (($customerPreference->type ?? null) !== null) { // Only score if preference is set
@@ -136,7 +137,6 @@ class RealEstateRecommendationService
             }
         }
 
-
         // 4. Kind Match (Apartment/Villa/Chalet) - THIS IS CRITICAL TO CHECK AFTER ADDING TO CUSTOMER_PREFERENCES TABLE
         if (($customerPreference->kind ?? null) !== null) { // Only score if preference is set
             $normalizedRealEstateKind = self::KIND_MAP[$realEstate->kind] ?? null;
@@ -148,7 +148,6 @@ class RealEstateRecommendationService
             }
         }
 
-
         // 5. Price Match (Crucial)
         // Re-iterating: 'price' as enum '1','2','3' in customer_preferences is limiting.
         // Assuming realEstate->price is numeric and customerPreference->price is the enum.
@@ -158,13 +157,12 @@ class RealEstateRecommendationService
 
             if ($priceCategoryRealEstate === $priceCategoryPreference) {
                 $score += self::PREFERENCE_WEIGHTS['price_match'];
-            } elseif (abs((int)$priceCategoryRealEstate - (int)$priceCategoryPreference) === 1) {
+            } elseif (abs((int) $priceCategoryRealEstate - (int) $priceCategoryPreference) === 1) {
                 $score += self::PREFERENCE_WEIGHTS['price_match'] / 2; // Partial match if one category off
             } else {
                 $score -= self::PREFERENCE_WEIGHTS['price_match'] / 4; // Penalty
             }
         }
-
 
         // 6. Properties Details (if available)
         if ($realEstate->properties) {
@@ -185,7 +183,6 @@ class RealEstateRecommendationService
                 $score += min(($properties->room_no ?? 0) * 2, 10); // Max 10 bonus for rooms
             }
 
-
             // Space Status
             if (($customerPreference->space_status ?? null) !== null) { // Only score if preference is set
                 if (($properties->space_status ?? 0) >= ($customerPreference->space_status)) {
@@ -200,7 +197,6 @@ class RealEstateRecommendationService
                 // If no preference for space, still give a bonus for more space (general desirability)
                 $score += min(($properties->space_status ?? 0) / 10, 10); // Max 10 bonus for space (e.g., 100sqm = 10 bonus)
             }
-
 
             // Quality Status fields (Electricity, Water, Transportation, Attired)
             $score += $this->getQualityMatchScore(
@@ -223,7 +219,6 @@ class RealEstateRecommendationService
                 $customerPreference->attired,
                 self::PREFERENCE_WEIGHTS['attired']
             );
-
 
             // Boolean preferences (water_well, solar_energy, garage, elevator, garden_status)
             $score += $this->getBooleanMatchScore(
@@ -268,7 +263,6 @@ class RealEstateRecommendationService
                 }
             }
 
-
             // Direction (assuming '1' is most favorable)
             if (($customerPreference->direction ?? null) !== null) { // Only score if preference is set
                 if (($properties->direction ?? null) === $customerPreference->direction) {
@@ -287,7 +281,6 @@ class RealEstateRecommendationService
                 }
             }
 
-
             // Ownership Type
             if (($customerPreference->ownership_type ?? null) !== null) { // Only score if preference is set
                 $normalizedRealEstateOwnership = self::OWNERSHIP_TYPE_MAP[$properties->ownership_type] ?? null;
@@ -299,7 +292,6 @@ class RealEstateRecommendationService
                     $score -= self::PREFERENCE_WEIGHTS['ownership_type'] / 2;
                 }
             }
-
 
             // RealEstate_properties total_weight
             $score += ($properties->total_weight ?? 0) * (self::PREFERENCE_WEIGHTS['properties_total_weight'] / 10);
@@ -313,10 +305,9 @@ class RealEstateRecommendationService
     /**
      * Helper for boolean preferences ('1'/'2' for Yes/No).
      *
-     * @param string|null $realEstateValue The property's value ('1' or '2').
-     * @param string|null $preferenceValue The customer's preference ('1' or '2').
-     * @param int $weight The base weight for this preference.
-     * @return int
+     * @param  string|null  $realEstateValue  The property's value ('1' or '2').
+     * @param  string|null  $preferenceValue  The customer's preference ('1' or '2').
+     * @param  int  $weight  The base weight for this preference.
      */
     private function getBooleanMatchScore(?string $realEstateValue, ?string $preferenceValue, int $weight): int
     {
@@ -325,6 +316,7 @@ class RealEstateRecommendationService
             if (($realEstateValue ?? null) == '1') {
                 return $weight / 4; // Small bonus for generally good features
             }
+
             return 0; // No preference, and property doesn't have it, no score change
         }
 
@@ -344,16 +336,16 @@ class RealEstateRecommendationService
         } elseif ($realEstateBool === false && $preferenceBool === true) {
             return -$weight; // User wants it but property doesn't have it (strong penalty)
         }
+
         return 0;
     }
 
     /**
      * Helper for quality status preferences ('1'/'2'/'3').
      *
-     * @param string|null $realEstateValue The property's value ('1', '2', or '3').
-     * @param string|null $preferenceValue The customer's preference ('1', '2', or '3').
-     * @param int $weight The base weight for this preference.
-     * @return int
+     * @param  string|null  $realEstateValue  The property's value ('1', '2', or '3').
+     * @param  string|null  $preferenceValue  The customer's preference ('1', '2', or '3').
+     * @param  int  $weight  The base weight for this preference.
      */
     private function getQualityMatchScore(?string $realEstateValue, ?string $preferenceValue, int $weight): int
     {
@@ -375,8 +367,8 @@ class RealEstateRecommendationService
             return $weight; // Exact match
         }
 
-        $reValue = (int)$realEstateValue;
-        $prefValue = (int)$preferenceValue;
+        $reValue = (int) $realEstateValue;
+        $prefValue = (int) $preferenceValue;
 
         // If property quality is better or same as desired:
         if ($reValue <= $prefValue) { // e.g., RE is '1' (Good), Pref is '2' (Average) or '1' (Good)
@@ -392,15 +384,19 @@ class RealEstateRecommendationService
      * Helper to categorize numeric price into enum categories.
      * This is a placeholder and depends on your actual price ranges.
      *
-     * @param float|int $price
-     * @return string
+     * @param  float|int  $price
      */
     private function getPriceCategory($price): string
     {
         // Define your actual price thresholds here based on your business logic.
         // These should correspond to what your 'price' enum values '1', '2', '3' represent.
-        if ($price < 10000000) return '1'; // Example: Less than 10 million (e.g., small apartments)
-        if ($price < 50000000) return '2'; // Example: 10 million to 50 million (e.g., medium apartments/small villas)
+        if ($price < 10000000) {
+            return '1';
+        } // Example: Less than 10 million (e.g., small apartments)
+        if ($price < 50000000) {
+            return '2';
+        } // Example: 10 million to 50 million (e.g., medium apartments/small villas)
+
         return '3'; // Example: 50 million and above (e.g., large villas, chalets)
     }
 }

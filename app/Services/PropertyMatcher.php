@@ -3,14 +3,15 @@
 namespace App\Services;
 
 use App\Models\RealEstate;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Log;
 
 class PropertyMatcher
 {
     protected array $weights;
+
     protected array $flexibleFields;
+
     protected array $realEstateTableColumns = ['price', 'type'];
 
     public function __construct()
@@ -37,7 +38,7 @@ class PropertyMatcher
         $totalPossibleScore = 0;
 
         foreach ($userInput as $key => $value) {
-            if (!isset($value) || $value === '' || !isset($this->weights[$key])) {
+            if (! isset($value) || $value === '' || ! isset($this->weights[$key])) {
                 continue;
             }
 
@@ -49,7 +50,7 @@ class PropertyMatcher
                 : "real_estate_properties.{$key}";
 
             $nullCheck = in_array($key, $this->realEstateTableColumns)
-                ? "" // No null check for main table columns
+                ? '' // No null check for main table columns
                 : "{$column} IS NOT NULL AND";
 
             if (isset($this->flexibleFields[$key]) && is_numeric($value)) {
@@ -74,7 +75,7 @@ class PropertyMatcher
         }
 
         if (empty($scoreCalculations) || $totalPossibleScore === 0) {
-            return new Collection();
+            return new Collection;
         }
 
         $query->leftJoin('real_estate_properties', 'real_estates.id', '=', 'real_estate_properties.real_estate_id');
@@ -141,12 +142,14 @@ class PropertyMatcher
     private function getMatchedFeatures($realEstate, $userInput)
     {
         $features = [];
-        if (!$realEstate) {
+        if (! $realEstate) {
             return $features;
         }
 
         foreach ($userInput as $key => $value) {
-            if (empty($value) || !isset($this->weights[$key])) continue;
+            if (empty($value) || ! isset($this->weights[$key])) {
+                continue;
+            }
 
             $propertyValue = null;
             if (in_array($key, $this->realEstateTableColumns)) {
@@ -169,7 +172,7 @@ class PropertyMatcher
                         'value' => $propertyValue,
                         'user_input' => $value,
                         'match_type' => 'flexible',
-                        'closeness' => round($closeness * 100) . '%',
+                        'closeness' => round($closeness * 100).'%',
                     ];
                 }
             } else {
@@ -182,6 +185,7 @@ class PropertyMatcher
                 }
             }
         }
+
         return $features;
     }
 }

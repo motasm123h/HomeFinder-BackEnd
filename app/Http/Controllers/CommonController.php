@@ -30,6 +30,7 @@ class CommonController extends Controller
         foreach ($users as $user) {
             $user->notify(new Newcomplaint($com));
         }
+
         return $this->apiResponse(
             'Data created successfully',
             $com,
@@ -40,13 +41,16 @@ class CommonController extends Controller
     public function seen(int $review_id)
     {
         $review = Reviews::where('id', $review_id)->first()->update(['seen' => 'yes']);
+
         return response()->json([
             'data' => $review,
         ]);
     }
+
     public function getReviewsByOffice(int $user_id)
     {
         $reviews = User::where('id', $user_id)->first();
+
         return response()->json([
             'data' => $reviews->load('reviews'),
         ]);
@@ -55,6 +59,7 @@ class CommonController extends Controller
     public function index()
     {
         $com = Reviews::paginate(12);
+
         return $this->apiResponse(
             'Data retrieved successfully',
             $com,
@@ -66,6 +71,7 @@ class CommonController extends Controller
     public function delete(int $id)
     {
         $data = Reviews::where('id', $id)->first();
+
         return $this->apiResponse(
             $data->delete(),
             null,

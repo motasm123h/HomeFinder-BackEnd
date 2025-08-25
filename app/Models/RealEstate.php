@@ -2,11 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\RealEstate_images;
-use App\Models\RealEstate_Location;
-use App\Models\RealEstate_properties;
-use App\Models\RealEstate_View;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -25,9 +20,8 @@ class RealEstate extends Model
         'total_weight',
         'kind',
         'user_id',
-        'real_estate_location_id'
+        'real_estate_location_id',
     ];
-
 
     public function user(): BelongsTo
     {
