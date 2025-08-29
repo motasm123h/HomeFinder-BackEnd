@@ -41,7 +41,6 @@ class MediaService
     public function validateFile(UploadedFile $file)
     {
         $config = config('model_paths.real_estate');
-        // dd($config);
         if (! in_array($file->getMimeType(), $config['mime_types'])) {
             throw new \InvalidArgumentException('Invalid file type');
         }
