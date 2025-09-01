@@ -26,7 +26,7 @@ class updateRealEstateRequest extends FormRequest
             'latitude' => 'numeric',
             'longitude' => 'numeric',
             // 'status' => [ Rule::in(['Closed', 'Open'])],
-            'type' => [Rule::in(['Rental', 'Sale'])],
+            'type' => [Rule::in(['rental', 'rale'])],
             'price' => 'integer|min:0',
             'description' => 'string|max:1000',
             'kind' => [Rule::in(['apartment', 'villa', 'chalet'])],
