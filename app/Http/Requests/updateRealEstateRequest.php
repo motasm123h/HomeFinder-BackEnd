@@ -23,15 +23,13 @@ class updateRealEstateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // Real Estate Fields
             'latitude' => 'numeric',
             'longitude' => 'numeric',
             // 'status' => [ Rule::in(['Closed', 'Open'])],
             'type' => [Rule::in(['Rental', 'Sale'])],
             'price' => 'integer|min:0',
             'description' => 'string|max:1000',
-            'kind' => [Rule::in(['Apartment', 'Villa', 'Chalet'])],
-            // 'user_id' => 'exists:users,id',
+            'kind' => [Rule::in(['apartment', 'villa', 'chalet'])],
             'real_estate_location_id' => 'exists:real_estate_locations,id',
 
             // Property Fields (updated to match your schema)
